@@ -6,7 +6,6 @@
 PROMPT_OFFSET=1
 TITLE_LENGTH=80
 DEEPTHOUGHT_FILE=deepthought
-DIFF_OPT="-a"
 
 #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#==#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
 
@@ -57,12 +56,11 @@ function echo_deep_section() {
 
 function	append_to_deep()
 {
-	local	level=${1}
 	local	msg=${2}
 
-	if [ "${level}" == "1" ]; then
+	if [ "${1}" == "1" ]; then
 		offset_tab="\t"
-	elif [ "${level}" == "2" ]; then
+	elif [ "${1}" == "2" ]; then
 		offset_tab="\t\t"
 	else
 		offset_tab=""
@@ -73,11 +71,20 @@ function	append_to_deep()
 
 function	append_to_deep_pass()
 {
-	if [ "${2}" == "1" ]; then
-		printf "${SUCCESS}${1}\n" >> ${DEEPTHOUGHT_FILE}
+	if [ "${1}" == "1" ]; then
+		offset_tab="\t"
+	elif [ "${1}" == "2" ]; then
+		offset_tab="\t\t"
 	else
-		printf "${FAILED}${1}\n" >> ${DEEPTHOUGHT_FILE}
+		offset_tab=""
 	fi
+	if [ "${3}" == "success" ]; then
+		msg="${SUCCESS}${2}"
+	else
+		msg="${FAILED}${2}"
+	fi
+	msg=$(printf "${msg}" | sed "s|^|${offset_tab}|")
+	printf "${msg}\n" >> ${DEEPTHOUGHT_FILE}
 }
 
 function	create_report()
@@ -95,19 +102,28 @@ function	create_report()
 function	clean_out_user()
 {
 	out_user="$(echo "${1}" | grep -v -e "${2}" -e "exit")"
-	out_user="$(echo "${out_user}" | grep -v -e "\001.*\002")"
+	out_user="$(echo "${out_user}" | sed "s/\o001.*\o002//g")"
+}
+
+function	report_same_file()
+{
+	diff_out="$(diff <(echo "${out_expected}") <(echo "${out_user}"))"
+	if [ -z "${diff_out}" ]; then
+		append_to_deep_pass 1 "\`${green}${1}${reset}' diff ok" success
+	else
+		append_to_deep_pass 1 "\`${red}${1}${reset}'\n${diff_out}" failed
+	fi
 }
 
 function	is_the_same_report()
 {
 	if [ "${2}" == "1" ]; then
-		append_to_deep_pass "return value are the same" 1
+		append_to_deep_pass 0 "return value are the same" success
 	else
-		append_to_deep_pass "return value are the same" 0
+		append_to_deep_pass 0 "return value are not the same" failed
 	fi
-	append_to_deep 0 "\`${red}${1}${reset}':"
-	append_to_deep 1 "$(diff ${DIFF_OPT} <(echo "${out_expected}") <(echo "${out_user}"))"
-	append_to_deep 0 ""
+	report_same_file "${1}"
+	append_to_deep ""
 }
 
 function	is_the_same()
@@ -159,6 +175,12 @@ function test_command()
 	is_the_same "cd /root"
 	is_the_same "cd /test"
 	is_the_same "echo pass"
+	echo pass > test/file
+	is_the_same "ca't' -e test/file"
+	is_the_same "ca't -e' \"test/file\""
+	is_the_same "cat -e \"test/'fi'le\""
+	is_the_same "cat -e \"test/'fi'\"le\"\""
+
 }
 
 function main()

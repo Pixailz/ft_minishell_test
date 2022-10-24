@@ -6,6 +6,7 @@
 PROMPT_OFFSET=1
 TITLE_LENGTH=80
 DEEPTHOUGHT_FILE=deepthought
+DIFF_OPT="-a"
 
 #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#==#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
 
@@ -67,7 +68,16 @@ function	append_to_deep()
 		offset_tab=""
 	fi
 	msg="$(echo "${msg}" | sed "s|^|${offset_tab}|")"
-	printf "${msg}" >> ${DEEPTHOUGHT_FILE}
+	printf "${msg}\n" >> ${DEEPTHOUGHT_FILE}
+}
+
+function	append_to_deep_pass()
+{
+	if [ "${2}" == "1" ]; then
+		printf "${SUCCESS}${1}\n" >> ${DEEPTHOUGHT_FILE}
+	else
+		printf "${FAILED}${1}\n" >> ${DEEPTHOUGHT_FILE}
+	fi
 }
 
 function	create_report()
@@ -84,14 +94,20 @@ function	create_report()
 
 function	clean_out_user()
 {
-	out_user="$(echo "${1}" | sed -E "/.*${END_PROMPT}.*/d")"
+	out_user="$(echo "${1}" | grep -v -e "${2}" -e "exit")"
+	out_user="$(echo "${out_user}" | grep -v -e "\001.*\002")"
 }
 
 function	is_the_same_report()
 {
-	append_to_deep 0 "\`${red}${1}${reset}':\n"
-	append_to_deep 1 "$(diff <(echo "${out_expected}") <(echo "${out_user}"))"
-	append_to_deep 0 "\n\n"
+	if [ "${2}" == "1" ]; then
+		append_to_deep_pass "return value are the same" 1
+	else
+		append_to_deep_pass "return value are the same" 0
+	fi
+	append_to_deep 0 "\`${red}${1}${reset}':"
+	append_to_deep 1 "$(diff ${DIFF_OPT} <(echo "${out_expected}") <(echo "${out_user}"))"
+	append_to_deep 0 ""
 }
 
 function	is_the_same()
@@ -99,23 +115,57 @@ function	is_the_same()
 	local	out_expected
 	local	return_value_expected
 	local	return_value_user
+	local	same_return_value
 
-	out_expected=$(${1} 2>&1)
+	# exec real bash
+	out_expected=$(bash -c "${1}" 2>&1)
+	# catch real bash return value
 	return_value_expected=${?}
+	# exec minishell
 	out_user="$(echo ${1} | ${EXEC_PATH} 2>&1)"
+	# catch minishell return value
 	return_value_user=${?}
-	clean_out_user "${out_user}"
-	is_the_same_report "${1}"
+	# clean prompt output
+	clean_out_user "${out_user}" "${1}"
+	# check if return value match
+	if [ "${return_value_expected}" == "${return_value_user}" ]; then
+		same_return_value=1
+	else
+		same_return_value=0
+	fi
+	# report test
+	is_the_same_report "${1}" "${same_return_value}"
 }
 
 #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#==#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
 #> MAIN
 
-function main()
+EXEC_PATH="${1}"
+
+function prepare_test()
 {
 	create_report
+	clean_test
+	mkdir test
+}
+
+function clean_test()
+{
+	[ -d test ] || [ -f test ] && rm -rf test
+}
+
+function test_command()
+{
 	is_the_same "cd /root"
 	is_the_same "cd /test"
+	is_the_same "echo pass"
+}
+
+function main()
+{
+	prepare_test
+	test_command
+	clean_test
 }
 
 main

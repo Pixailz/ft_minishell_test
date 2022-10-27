@@ -172,7 +172,9 @@ function	create_report()
 
 function	clean_out_user()
 {
+	# remove line with the command and the line with the exit
 	out_user="$(echo "${1}" | grep -v -e "${2}" -e "exit")"
+	# remove the ansi escaped character, should begin with \001 and finish with \002
 	out_user="$(echo "${out_user}" | sed "s/\o001.*\o002//g")"
 }
 
@@ -260,11 +262,13 @@ function	prepare_test()
 {
 	create_report
 	clean_test
+	# create a dir test
 	mkdir test
 }
 
 function	clean_test()
 {
+	# if directory or file test exists remove it
 	[ -d test ] || [ -f test ] && rm -rf test
 }
 
@@ -275,6 +279,7 @@ function	main()
 	clean_test
 }
 
+# main entry
 main
 
 #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#==#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#

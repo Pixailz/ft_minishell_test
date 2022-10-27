@@ -1,17 +1,21 @@
 #!/bin/bash
+: 'Author:     Pixailz'
+: 'created:    20/10/2022 13:49:43'
+: 'updated:    27/10/2022 07:07:36'
 
 #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#==#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
-#> Config
+#> CONFIG
 
 PROMPT_OFFSET=1
 TITLE_LENGTH=80
+SCRIPT_NAME=${0##*/}
 SCRIPT_DIR=$(cd ${0%/*} && pwd)
 DEEPTHOUGHT_FILE=${SCRIPT_DIR}/deepthought
 
 #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#==#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
 
 #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#==#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
-#> Bash Color (printable)
+#> BASH COLOR
 
 red="\x1b[38;5;196m"
 green="\x1b[38;5;82m"
@@ -45,6 +49,61 @@ function	remove_color()
 	FAILED="[-]"
 	DEEP_SEC_COLOR=""
 }
+
+#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#==#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
+
+#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#==#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
+#> PARSE ARGS
+
+function	usage()
+{
+	printf "${SCRIPT_NAME}: ${SCRIPT_NAME} PATH...\n"
+	printf "unit test for minishell project\n"
+	printf "\n"
+	printf "  -q, --no-color\t\tremove color to the deepthought\n"
+	printf "\n"
+	printf "  -h, --help\t\t\tdisplay this help and exit\n"
+	exit
+}
+
+function	error_parse()
+{
+	printf "${SCRIPT_NAME}: ${1}\n"
+	printf "Try '${SCRIPT_NAME} --help' for more information.\n"
+	exit
+}
+
+function	parse_args()
+{
+	local	TMP_PATH
+
+	while [ ! -z ${1} ]; do
+		case ${1} in
+			-q|--no-color)
+				NO_COLOR=yes
+				;;
+			-h|--help)
+				usage
+				;;
+			*)
+				[[ "${1}" =~ --?.* ]] && error_parse "invalid options -- '${1}'"
+				TMP_PATH=$(realpath ${1})
+				[ ! -f "${TMP_PATH}" ] && error_parse "${1}: no such file"
+				EXEC_PATH=${TMP_PATH}
+				;;
+		esac
+		shift
+	done
+}
+
+function	post_parse_args()
+{
+	[ "${NO_COLOR}" == "yes" ] && remove_color
+	[ ! "${EXEC_PATH}" ] && error_parse "missing operand"
+}
+
+parse_args ${@}
+post_parse_args
 
 #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#==#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
 
@@ -168,63 +227,6 @@ function	is_the_same()
 #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#==#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
 
 #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#==#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
-#> PARSE ARGS
-
-script_name=${0##*/}
-
-function	usage()
-{
-	printf "${script_name}: ${script_name} PATH...\n"
-	printf "unit test for minishell project\n"
-	printf "\n"
-	printf "  -q, --no-color\t\tremove color to the deepthought\n"
-	printf "\n"
-	printf "  -h, --help\t\t\tdisplay this help and exit\n"
-	exit
-}
-
-function	error_parse()
-{
-	printf "${script_name}: ${1}\n"
-	printf "Try '${script_name} --help' for more information.\n"
-	exit
-}
-
-function	parse_args()
-{
-	local	TMP_PATH
-
-	while [ ! -z ${1} ]; do
-		case ${1} in
-			-q|--no-color)
-				NO_COLOR=yes
-				;;
-			-h|--help)
-				usage
-				;;
-			*)
-				[[ "${1}" =~ --?.* ]] && error_parse "invalid options -- '${1}'"
-				TMP_PATH=$(realpath ${1})
-				[ ! -f "${TMP_PATH}" ] && error_parse "${1}: no such file"
-				EXEC_PATH=${TMP_PATH}
-				;;
-		esac
-		shift
-	done
-}
-
-function	post_parse_args()
-{
-	[ "${NO_COLOR}" == "yes" ] && remove_color
-	[ ! "${EXEC_PATH}" ] && error_parse "missing operand"
-}
-
-parse_args ${@}
-post_parse_args
-
-#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#==#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
-
-#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#==#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
 #> BASIC TEST
 
 function	basic_command()
@@ -254,19 +256,19 @@ function	basic_test_entry()
 #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#==#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
 #> MAIN
 
-function prepare_test()
+function	prepare_test()
 {
 	create_report
 	clean_test
 	mkdir test
 }
 
-function clean_test()
+function	clean_test()
 {
 	[ -d test ] || [ -f test ] && rm -rf test
 }
 
-function main()
+function	main()
 {
 	prepare_test
 	basic_test_entry

@@ -5,7 +5,8 @@
 
 PROMPT_OFFSET=1
 TITLE_LENGTH=80
-DEEPTHOUGHT_FILE=deepthought
+SCRIPT_DIR=$(cd ${0%/*} && pwd)
+DEEPTHOUGHT_FILE=${SCRIPT_DIR}/deepthought
 
 #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#==#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
 
@@ -29,16 +30,28 @@ UR="\xe2\x95\x97"
 VE="\xe2\x95\x91"
 LL="\xe2\x95\x9a"
 LR="\xe2\x95\x9d"
-HEART="${blink}\xe2\x99\xa5${reset}"
 
 DEEP_SEC_COLOR=${green}
+
+function	remove_color()
+{
+	red=""
+	green=""
+	blue=""
+	orange=""
+	blink=""
+	reset=""
+	SUCCESS="[+]"
+	FAILED="[-]"
+	DEEP_SEC_COLOR=""
+}
 
 #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#==#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
 
 #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#==#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
 #> REPORT
 
-function echo_deep_section() {
+function	echo_deep_section() {
 	vertical_offset=$(printf "%0.s${HO}" $(seq 1 ${TITLE_LENGTH}))
 	center_off=$(( ${TITLE_LENGTH} - ${#1}))
 	center_splited=$(( ${center_off} / 2 ))
@@ -92,7 +105,6 @@ function	create_report()
 	[ -f ${DEEPTHOUGHT_FILE} ] && rm -f ${DEEPTHOUGHT_FILE}
 	echo_deep_section "MINISHELL"
 }
-
 
 #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#==#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
 
@@ -154,9 +166,93 @@ function	is_the_same()
 }
 
 #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#==#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
-#> MAIN
 
-EXEC_PATH="${1}"
+#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#==#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
+#> PARSE ARGS
+
+script_name=${0##*/}
+
+function	usage()
+{
+	printf "${script_name}: ${script_name} PATH...\n"
+	printf "unit test for minishell project\n"
+	printf "\n"
+	printf "  -q, --no-color\t\tremove color to the deepthought\n"
+	printf "\n"
+	printf "  -h, --help\t\t\tdisplay this help and exit\n"
+	exit
+}
+
+function	error_parse()
+{
+	printf "${script_name}: ${1}\n"
+	printf "Try '${script_name} --help' for more information.\n"
+	exit
+}
+
+function	parse_args()
+{
+	local	TMP_PATH
+
+	while [ ! -z ${1} ]; do
+		case ${1} in
+			-q|--no-color)
+				NO_COLOR=yes
+				;;
+			-h|--help)
+				usage
+				;;
+			*)
+				[[ "${1}" =~ --?.* ]] && error_parse "invalid options -- '${1}'"
+				TMP_PATH=$(realpath ${1})
+				[ ! -f "${TMP_PATH}" ] && error_parse "${1}: no such file"
+				EXEC_PATH=${TMP_PATH}
+				;;
+		esac
+		shift
+	done
+}
+
+function	post_parse_args()
+{
+	[ "${NO_COLOR}" == "yes" ] && remove_color
+	[ ! "${EXEC_PATH}" ] && error_parse "missing operand"
+}
+
+parse_args ${@}
+post_parse_args
+
+#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#==#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
+
+#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#==#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
+#> BASIC TEST
+
+function	basic_command()
+{
+	is_the_same "cd /root"
+	is_the_same "cd /test"
+	is_the_same "echo pass"
+}
+
+function	basic_parsing()
+{
+	echo pass > test/file
+	is_the_same "ca't' -e test/file"
+	is_the_same "ca't -e' \"test/file\""
+	is_the_same "cat -e \"test/'fi'le\""
+	is_the_same "cat -e \"test/'fi'\"le\"\""
+}
+
+function	basic_test_entry()
+{
+	basic_command
+	basic_parsing
+}
+
+#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#==#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
+
+#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#==#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
+#> MAIN
 
 function prepare_test()
 {
@@ -170,23 +266,10 @@ function clean_test()
 	[ -d test ] || [ -f test ] && rm -rf test
 }
 
-function test_command()
-{
-	is_the_same "cd /root"
-	is_the_same "cd /test"
-	is_the_same "echo pass"
-	echo pass > test/file
-	is_the_same "ca't' -e test/file"
-	is_the_same "ca't -e' \"test/file\""
-	is_the_same "cat -e \"test/'fi'le\""
-	is_the_same "cat -e \"test/'fi'\"le\"\""
-
-}
-
 function main()
 {
 	prepare_test
-	test_command
+	basic_test_entry
 	clean_test
 }
 

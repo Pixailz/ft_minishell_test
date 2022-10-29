@@ -10,7 +10,7 @@ TITLE_LENGTH=60
 SCRIPT_NAME=${0##*/}
 SCRIPT_DIR=$(cd ${0%/*} && pwd)
 DEEPTHOUGHT_FILE=${SCRIPT_DIR}/deepthought
-PRINT_OFFSET_STR="   "
+PRINT_OFFSET_STR="\t"
 
 #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#==#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
 
@@ -211,38 +211,8 @@ function	report_return_value()
 		echo_deep 1 0 "return value are not the same" 1
 		echo_deep 2 -1 "${green}expected${reset}(${return_value_expected}) \
 | ${red}yours${reset}:(${return_value_user})" 1
-# 		echo_deep 4 -1 "${green}expected${reset}(${return_value_expected}) \
-# | ${red}yours${reset}:(${return_value_user})"
 	fi
 }
-
-# function	same_out_and_return()
-# {
-# 	local	out_expected
-
-# 	# exec real bash
-# 	out_expected=$(bash -c "${1}" 2>&1)
-# 	# catch real bash return value
-# 	return_value_expected=${?}
-# 	# exec minishell
-# 	out_user="$(printf "${1}\necho \"return_value=\$?\"" | ${EXEC_PATH} 2>&1)"
-# 	# clean prompt output
-# 	clean_out_user_cmd "${out_user}" "${1}"
-# 	# check if return value match
-# 	if [ "${return_value_expected}" == "${return_value_user}" ]; then
-# 		same_return_value=1
-# 	else
-# 		same_return_value=0
-# 	fi
-# 	# report test
-# 	if [ "${same_return_value}" == 0 ] || [ "${out_expected}" != "${out_user}" ]; then
-# 		echo_deep 2 3 "\`${blue}${1}${reset}'"
-# 	fi
-# 	echo_deep 0 3 "\`${blue}${1}${reset}'" 1
-# 	report_return_value ${same_return_value}
-# 	report_out
-
-# }
 
 function	same_out_and_return()
 {
@@ -256,11 +226,14 @@ function	same_out_and_return()
 	# catch real bash return value
 	return_value_expected=${?}
 	# exec minishell
-	if [ "${out_user_exec}" != "" ]; then
-		out_user="$(echo -e "$(printf "${1}")\necho return_value=\$?" | ${EXEC_PATH} 2>&1)"
+	if [ "${out_user_exec}" == "1" ]; then
+		exec_command="bash -c \"${1}\""
+	elif [ "${out_user_exec}" == "2" ]; then
+		exec_command="./minishell\n${1}"
 	else
-		out_user="$(echo -e "$(printf "${1}")\necho return_value=\$?" | ${EXEC_PATH} 2>&1)"
+		exec_command=""
 	fi
+	out_user="$(echo -e "${exec_command}\necho return_value=\$?" | ${EXEC_PATH} 2>&1)"
 	# clean prompt output
 	clean_out_user_cmd "${out_user}" "${1}"
 	# check if return value match
@@ -270,9 +243,9 @@ function	same_out_and_return()
 	fi
 	# report test
 	if [ "${same_return_value}" == 0 ] || [ "${out_expected}" != "${out_user}" ]; then
-		echo_deep 0 3 "\`${blue}${1}${reset}'" 1
+		echo_deep 2 3 "\`${blue}${1}${reset}'"
 	fi
-	echo_deep 2 3 "\`${blue}${1}${reset}'"
+	echo_deep 0 3 "\`${blue}${1}${reset}'" 1
 	report_return_value ${same_return_value}
 	report_out
 
@@ -315,14 +288,14 @@ function	permission_exec_setup()
 
 function permission_exec_start()
 {
-	same_out_and_return "./test/exec_00" "bash -c"
-	same_out_and_return "./test/exec_01" "bash -c"
-	same_out_and_return "./test/exec_02" "bash -c"
-	same_out_and_return "./test/exec_03" "bash -c"
-	same_out_and_return "./test/exec_04" "bash -c"
-	same_out_and_return "./test/exec_05" "bash -c"
-	same_out_and_return "./test/exec_06" "bash -c"
-	same_out_and_return "./test/exec_07" "bash -c"
+	same_out_and_return "./test/exec_00" 1
+	same_out_and_return "./test/exec_01" 1
+	same_out_and_return "./test/exec_02" 1
+	same_out_and_return "./test/exec_03" 1
+	same_out_and_return "./test/exec_04" 1
+	same_out_and_return "./test/exec_05" 1
+	same_out_and_return "./test/exec_06" 1
+	same_out_and_return "./test/exec_07" 1
 }
 
 ##--> Permission file execve will launch
@@ -372,7 +345,7 @@ function	exit_section()
 {
 	# 1: exit without args should return last $?
 	same_out_and_return "cd /root"
-	same_out_and_return "exit 123"
+	same_out_and_return "exit 123" "./minishell"
 	same_out_and_return "exit 1 1"
 	same_out_and_return "exit a 1"
 	same_out_and_return "exit 1 a"

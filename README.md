@@ -2,11 +2,8 @@
 test unitaire sur notre version de minishell
 
 ## TO TEST
-- `ca't' -e file`
-- `ca't -e' "file.txt"`
-- `cat -e "fi"le`
-- `cat -e "fi"'le'`
 - `sleep 3 | cat file`
+- `sleep 3 | catt file`
 - `echo pass | grep 'ass'`
 - `echo test1 | echo test2`
 - `echoo pass | cat file`

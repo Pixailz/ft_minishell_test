@@ -6,11 +6,11 @@
 #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#==#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
 #> CONFIG
 
-PROMPT_OFFSET=1
-TITLE_LENGTH=80
+TITLE_LENGTH=60
 SCRIPT_NAME=${0##*/}
 SCRIPT_DIR=$(cd ${0%/*} && pwd)
 DEEPTHOUGHT_FILE=${SCRIPT_DIR}/deepthought
+PRINT_OFFSET_STR="   "
 
 #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#==#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
 
@@ -27,6 +27,8 @@ reset="\x1b[0m"
 
 SUCCESS="[${green}+${reset}] "
 FAILED="[${red}-${reset}] "
+INFO="[${blue}*${reset}] "
+WARN="[${orange}*${reset}] "
 
 UL="\xe2\x95\x94"
 HO="\xe2\x95\x90"
@@ -45,8 +47,10 @@ function	remove_color()
 	orange=""
 	blink=""
 	reset=""
-	SUCCESS="[+]"
-	FAILED="[-]"
+	SUCCESS="[+] "
+	FAILED="[-] "
+	INFO="[*] "
+	WARN="[*] "
 	DEEP_SEC_COLOR=""
 }
 
@@ -111,9 +115,9 @@ post_parse_args
 #> REPORT
 
 function	echo_deep_section() {
-	vertical_offset=$(printf "%0.s${HO}" $(seq 1 ${TITLE_LENGTH}))
+	vertical_offset=$(printf "%0.s${HO}" $(seq 3 ${TITLE_LENGTH}))
 	center_off=$(( ${TITLE_LENGTH} - ${#1}))
-	center_splited=$(( ${center_off} / 2 ))
+	center_splited=$(( (${center_off} - 2) / 2 ))
 	if [ $(( ${center_off} % 2)) == 0 ]; then
 		CL=$(printf "%0.s " $(seq 1 ${center_splited}))
 		CR=$(printf "%0.s " $(seq 1 ${center_splited}))
@@ -121,48 +125,52 @@ function	echo_deep_section() {
 		CL=$(printf "%0.s " $(seq 1 ${center_splited}))
 		CR=$(printf "%0.s " $(seq 1 ${center_splited}) 1)
 	fi
-	printf "${DEEP_SEC_COLOR}${UL}${vertical_offset}${UR}\n" >> ${DEEPTHOUGHT_FILE}
-	printf "${VE}${CL}${reset}${1}${DEEP_SEC_COLOR}${CR}${VE}\n" >> ${DEEPTHOUGHT_FILE}
-	printf "${LL}${vertical_offset}${LR}${reset}\n" >> ${DEEPTHOUGHT_FILE}
+	if [ "${2}" == "1" ]; then
+		printf "${DEEP_SEC_COLOR}${UL}${vertical_offset}${UR}\n" >> ${DEEPTHOUGHT_FILE}
+		printf "${VE}${CL}${reset}${1}${DEEP_SEC_COLOR}${CR}${VE}\n" >> ${DEEPTHOUGHT_FILE}
+		printf "${LL}${vertical_offset}${LR}${reset}\n" >> ${DEEPTHOUGHT_FILE}
+	fi
+	printf "${DEEP_SEC_COLOR}${UL}${vertical_offset}${UR}\n"
+	printf "${VE}${CL}${reset}${1}${DEEP_SEC_COLOR}${CR}${VE}\n"
+	printf "${LL}${vertical_offset}${LR}${reset}\n"
 }
 
-function	append_to_deep()
+function	echo_deep()
 {
-	local	msg=${2}
+	local	offset=${1}
+	local	mode=${2}
+	local	msg=${3}
+	local	deepthought_out=${4}
+	local	first_part=""
 
-	if [ "${1}" == "1" ]; then
-		offset_tab="\t"
-	elif [ "${1}" == "2" ]; then
-		offset_tab="\t\t"
-	else
-		offset_tab=""
+	offset_tab=""
+	while [ "${offset}" != "0" ]; do
+		offset_tab="${offset_tab}${PRINT_OFFSET_STR}"
+		offset=$((${offset} - 1))
+	done
+	if [ "${mode}" == "-1" ]; then
+		first_part="${msg}"
+	elif [ "${mode}" == "0" ]; then
+		first_part="${FAILED}${msg}"
+	elif [ "${mode}" == "1" ]; then
+		first_part="${SUCCESS}${msg}"
+	elif [ "${mode}" == "2" ]; then
+		first_part="${INFO}${msg}"
+	elif [ "${mode}" == "3" ]; then
+		first_part="${WARN}${msg}"
 	fi
-	msg="$(echo "${msg}" | sed "s|^|${offset_tab}|")"
-	printf "${msg}\n" >> ${DEEPTHOUGHT_FILE}
+	msg=$(printf "${first_part}" | sed "s|^|${offset_tab}|")
+	if [ "${deepthought_out}" == "1" ]; then
+		printf "${msg}\n" >> ${DEEPTHOUGHT_FILE}
+	else
+		printf "${msg}\n"
+	fi
 }
 
-function	append_to_deep_pass()
-{
-	if [ "${1}" == "1" ]; then
-		offset_tab="\t"
-	elif [ "${1}" == "2" ]; then
-		offset_tab="\t\t"
-	else
-		offset_tab=""
-	fi
-	if [ "${3}" == "success" ]; then
-		msg="${SUCCESS}${2}"
-	else
-		msg="${FAILED}${2}"
-	fi
-	msg=$(printf "${msg}" | sed "s|^|${offset_tab}|")
-	printf "${msg}\n" >> ${DEEPTHOUGHT_FILE}
-}
-
-function	create_report()
+function	reset_deepfile()
 {
 	[ -f ${DEEPTHOUGHT_FILE} ] && rm -f ${DEEPTHOUGHT_FILE}
-	echo_deep_section "MINISHELL"
+	echo_deep_section "MINISHELL tester (pix)." 1
 }
 
 #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#==#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
@@ -170,40 +178,77 @@ function	create_report()
 #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#==#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
 #> TEST
 
-function	clean_out_user()
+function	clean_out_user_cmd()
 {
-	# remove line with the command and the line with the exit
-	out_user="$(echo "${1}" | grep -v -e "${2}" -e "exit")"
 	# remove the ansi escaped character, should begin with \001 and finish with \002
-	out_user="$(echo "${out_user}" | sed "s/\o001.*\o002//g")"
+	out_user="$(echo "${1}" | sed "s/\o001.*\o002//g")"
+	# catch minishell return value
+	return_value_user=$(echo "${out_user}" | sed -nE 's/return_value=([0-9]{1,3})/\1/p')
+	# remove line with the command and the three last command
+	out_user="$(echo "${out_user}" | tail -n +2 | head -n -3 )"
 }
 
-function	report_same_file()
+function	report_out()
 {
-	diff_out="$(diff <(echo "${out_expected}") <(echo "${out_user}"))"
-	if [ -z "${diff_out}" ]; then
-		append_to_deep_pass 1 "\`${green}${1}${reset}' diff ok" success
+	if [ "${out_expected}" == "${out_user}" ]; then
+		echo_deep 1 1 "diff ok" 1
 	else
-		append_to_deep_pass 1 "\`${red}${1}${reset}'\n${diff_out}" failed
+		echo_deep 3 0 "diff not ok"
+		echo_deep 1 0 "diff not ok" 1
+		echo_deep 2 -1 "${green}expected${reset}:" 1
+		echo_deep 3 -1 "${out_expected}" 1
+		echo_deep 2 -1 "${red}yours${reset}:" 1
+		echo_deep 3 -1 "${out_user}" 1
 	fi
 }
 
-function	is_the_same_report()
+function	report_return_value()
 {
-	if [ "${2}" == "1" ]; then
-		append_to_deep_pass 0 "return value are the same" success
+	if [ "${same_return_value}" == "1" ]; then
+		echo_deep 1 1 "return value are the same" 1
 	else
-		append_to_deep_pass 0 "return value are not the same" failed
+		echo_deep 3 0 "return value are not the same"
+		echo_deep 1 0 "return value are not the same" 1
+		echo_deep 2 -1 "${green}expected${reset}(${return_value_expected}) \
+| ${red}yours${reset}:(${return_value_user})" 1
+# 		echo_deep 4 -1 "${green}expected${reset}(${return_value_expected}) \
+# | ${red}yours${reset}:(${return_value_user})"
 	fi
-	report_same_file "${1}"
-	append_to_deep ""
 }
 
-function	is_the_same()
+# function	same_out_and_return()
+# {
+# 	local	out_expected
+
+# 	# exec real bash
+# 	out_expected=$(bash -c "${1}" 2>&1)
+# 	# catch real bash return value
+# 	return_value_expected=${?}
+# 	# exec minishell
+# 	out_user="$(printf "${1}\necho \"return_value=\$?\"" | ${EXEC_PATH} 2>&1)"
+# 	# clean prompt output
+# 	clean_out_user_cmd "${out_user}" "${1}"
+# 	# check if return value match
+# 	if [ "${return_value_expected}" == "${return_value_user}" ]; then
+# 		same_return_value=1
+# 	else
+# 		same_return_value=0
+# 	fi
+# 	# report test
+# 	if [ "${same_return_value}" == 0 ] || [ "${out_expected}" != "${out_user}" ]; then
+# 		echo_deep 2 3 "\`${blue}${1}${reset}'"
+# 	fi
+# 	echo_deep 0 3 "\`${blue}${1}${reset}'" 1
+# 	report_return_value ${same_return_value}
+# 	report_out
+
+# }
+
+function	same_out_and_return()
 {
 	local	out_expected
+	local	out_user_exec=${2}
 	local	return_value_expected
-	local	return_value_user
 	local	same_return_value
 
 	# exec real bash
@@ -211,46 +256,146 @@ function	is_the_same()
 	# catch real bash return value
 	return_value_expected=${?}
 	# exec minishell
-	out_user="$(echo ${1} | ${EXEC_PATH} 2>&1)"
-	# catch minishell return value
-	return_value_user=${?}
+	if [ "${out_user_exec}" != "" ]; then
+		out_user="$(echo -e "$(printf "${1}")\necho return_value=\$?" | ${EXEC_PATH} 2>&1)"
+	else
+		out_user="$(echo -e "$(printf "${1}")\necho return_value=\$?" | ${EXEC_PATH} 2>&1)"
+	fi
 	# clean prompt output
-	clean_out_user "${out_user}" "${1}"
+	clean_out_user_cmd "${out_user}" "${1}"
 	# check if return value match
+	same_return_value=0
 	if [ "${return_value_expected}" == "${return_value_user}" ]; then
 		same_return_value=1
-	else
-		same_return_value=0
 	fi
 	# report test
-	is_the_same_report "${1}" "${same_return_value}"
+	if [ "${same_return_value}" == 0 ] || [ "${out_expected}" != "${out_user}" ]; then
+		echo_deep 0 3 "\`${blue}${1}${reset}'" 1
+	fi
+	echo_deep 2 3 "\`${blue}${1}${reset}'"
+	report_return_value ${same_return_value}
+	report_out
+
 }
 
 #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#==#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
 
 #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#==#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
-#> BASIC TEST
+# TEST
 
-function	basic_command()
+##<-- EXEC PERM
+function	permission_exec_setup_create_file()
 {
-	is_the_same "cd /root"
-	is_the_same "cd /test"
-	is_the_same "echo pass"
+	local	permissions=${1}
+	local	file_path=${2}
+
+	[ -f ${file_path} ] || [ -d ${file_path} ] && rm -rf ${file_path}
+	echo "echo pass" > ${file_path}
+	chmod ${permissions} ${file_path}
+}
+function	permission_exec_setup()
+{
+	# me: ---, groups: ---, others: --- (false)
+	permission_exec_setup_create_file 000 ./test/exec_00
+	# me: --x, groups: ---, others: --- (false)
+	permission_exec_setup_create_file 100 ./test/exec_01
+	# me: -w-, groups: ---, others: --- (false)
+	permission_exec_setup_create_file 200 ./test/exec_02
+	# me: -wx, groups: ---, others: --- (false)
+	permission_exec_setup_create_file 300 ./test/exec_03
+	# me: -wx, groups: ---, others: --- (false)
+	permission_exec_setup_create_file 400 ./test/exec_04
+	# me: r-x, groups: ---, others: --- (true)
+	permission_exec_setup_create_file 500 ./test/exec_05
+	# me: rw-, groups: ---, others: --- (false)
+	permission_exec_setup_create_file 600 ./test/exec_06
+	# me: rwx, groups: ---, others: --- (true)
+	permission_exec_setup_create_file 700 ./test/exec_07
 }
 
-function	basic_parsing()
+function permission_exec_start()
+{
+	same_out_and_return "./test/exec_00" "bash -c"
+	same_out_and_return "./test/exec_01" "bash -c"
+	same_out_and_return "./test/exec_02" "bash -c"
+	same_out_and_return "./test/exec_03" "bash -c"
+	same_out_and_return "./test/exec_04" "bash -c"
+	same_out_and_return "./test/exec_05" "bash -c"
+	same_out_and_return "./test/exec_06" "bash -c"
+	same_out_and_return "./test/exec_07" "bash -c"
+}
+
+##--> Permission file execve will launch
+function	permission_exec()
+{
+	permission_exec_setup
+	permission_exec_start
+}
+
+##<-- cd part
+function	cd_section()
+{
+	# 1: Permission Denied
+	same_out_and_return "cd /root"
+	# 1: No such file or directory
+	same_out_and_return "cd /test"
+}
+##-->
+
+##<-- parsing part
+function	parsing_section()
 {
 	echo pass > test/file
-	is_the_same "ca't' -e test/file"
-	is_the_same "ca't -e' \"test/file\""
-	is_the_same "cat -e \"test/'fi'le\""
-	is_the_same "cat -e \"test/'fi'\"le\"\""
+	same_out_and_return "ca't' -e test/file"
+	same_out_and_return "ca't -e' \"test/file\""
+	same_out_and_return "cat -e \"test/'fi'le\""
+	same_out_and_return "cat -e \"test/'fi'\"le\"\""
+}
+#-->
+
+##<-- pipe section
+
+function	pipe_section()
+{
+	same_out_and_return "echo pass | cat -e"
+	same_out_and_return "echo pass | cat -e | cat -e | cat -e | cat -e | cat -e | cat -e"
+	# same_out_and_return "ls -laR / | head -n 10"
+	same_out_and_return "cat /etc/os-release | head -n 10"
+	same_out_and_return "cat /dev/urandom | head -c 10 | xxd"
 }
 
-function	basic_test_entry()
+##->
+
+##<-- exit
+
+function	exit_section()
 {
-	basic_command
-	basic_parsing
+	# 1: exit without args should return last $?
+	same_out_and_return "cd /root"
+	same_out_and_return "exit 123"
+	same_out_and_return "exit 1 1"
+	same_out_and_return "exit a 1"
+	same_out_and_return "exit 1 a"
+	same_out_and_return "exit 255"
+	same_out_and_return "exit 256"
+}
+
+##-->
+
+function	test_entry()
+{
+	echo_deep 0 3 "basic part"
+	echo_deep 1 2 "Permission section"
+	permission_exec
+	echo_deep 1 2 "Cd section"
+	cd_section
+	echo_deep 1 2 "Parsing section"
+	parsing_section
+	echo_deep 1 2 "Pipe section"
+	pipe_section
+	echo_deep 0 3 "built-in"
+	echo_deep 1 2 "exit"
+	exit_section
 }
 
 #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#==#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
@@ -258,9 +403,10 @@ function	basic_test_entry()
 #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#==#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
 #> MAIN
 
+
 function	prepare_test()
 {
-	create_report
+	reset_deepfile
 	clean_test
 	# create a dir test
 	mkdir test
@@ -275,7 +421,7 @@ function	clean_test()
 function	main()
 {
 	prepare_test
-	basic_test_entry
+	test_entry
 	clean_test
 }
 

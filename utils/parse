@@ -1,0 +1,146 @@
+#!/bin/bash
+
+: ' parse_short
+parse space separated and option separated
+'
+function	parse_short()
+{
+	local	to_shift=0
+
+	PARSED_ARG=()
+	shift
+	for item in ${*}; do
+		is_option ${item}
+		[ ${?} != 0 ] && break
+		PARSED_ARG[${#PARSED_ARG[@]}]=${item}
+	done
+	return ${#PARSED_ARG[@]}
+}
+
+function	is_in_list()
+{
+	local	list_name=${1}
+	local	list_src=${2}
+	local	list_dst=${3}
+
+}
+
+function	p_error_parse()
+{
+	printf "${SCRIPT_NAME}: ${1}\n"
+	printf "Try '${SCRIPT_NAME} --help' for more information.\n"
+	exit
+}
+
+function	debug_print_parse_arg()
+{
+	debug_print_array 'DO_PART' ${DO_PART[*]}
+}
+
+function	post_parsing()
+{
+	local	is_good
+	local	do_part
+	local	part
+
+	if [ "${HAVE_PART}" == 1 ] && [ ${#DO_PART[@]} == 0 ]; then
+		p_error_parse "wrong usage"
+	fi
+	if [ "${HAVE_MODULE}" == 1 ] && [ ${#DO_MODULE[@]} == 0 ]; then
+		p_error_parse "wrong usage"
+	fi
+	if [ "${HAVE_MODULE}" == 1 ] && [ "${HAVE_PART}" == 1 ]; then
+		p_error_parse "wrong usage"
+	fi
+
+	if [ "${HAVE_MODULE}" == 1 ]; then
+		do_part=(${DO_MODULE[*]})
+		part=(${MODULES[*]})
+	elif [ "${HAVE_PART}" == 1 ]; then
+		do_part=(${DO_PART[*]})
+		part=(${PARTS[*]})
+	fi
+	for to_str in ${do_part[*]}; do
+		is_good=0
+		for from_str in ${part[*]}; do
+			if [ ${to_str} == ${from_str} ]; then
+				is_good=1
+				break
+			fi
+		done
+		if [ ${is_good} != 1 ]; then
+			if [ ${HAVE_PART} == 1 ]; then
+				p_warn "wrong ${green}part${reset} name (${red}${to_str}${reset})"
+			else
+				p_warn "wrong ${green}module${reset} name (${red}${to_str}${reset})"
+			fi
+			usage
+		fi
+	done
+	[ ! ${EXEC_PATH} ] && p_error_parse "missing operand (${red}PATH${reset})"
+}
+
+function	usage()
+{
+	printf "${SCRIPT_NAME} : ${SCRIPT_NAME} PATH [-n] [-p PART1... PARTN]\n"
+	printf "unit test for minishell project\n"
+	printf "\n"
+	printf "  -n, --no-color    to disable colors\n"
+	printf "  -h, --help        show this help\n"
+	printf "\n"
+	printf "  -p, --part        install part, available part:\n"
+	printf "                        - basic\n"
+	printf "                        - built-in\n"
+	printf "\n"
+	printf "  -m, --module      install modules, available module:\n"
+	printf "                        - all\n"
+	printf "                        - perm\n"
+	printf "                        - parsing\n"
+	printf "                        - pipe\n"
+	printf "                        - builtin_cd\n"
+	printf "                        - builtin_exit\n"
+	exit
+}
+# pars args, keep parsing even if launch modules
+## if -n, --no-color			disable_color
+## if -h, --help				help
+
+## if -p, --part				set DO_PART=part1 ... partn
+## if -m, --module				set DO_MODULE=module1 ... modulen
+
+## -p && -m						false
+## -f|-n && -p | --part | -all		true
+function	parse_arg()
+{
+	while [ "${1}" != "" ]; do
+		case ${1} in
+			-h|--help)
+				usage
+				;;
+			-p|--part)
+				parse_short ${*}
+				shift $?
+				DO_PART=${PARSED_ARG[*]}
+				HAVE_PART=1
+				;;
+			-m|--module)
+				parse_short ${*}
+				shift $?
+				DO_MODULE=${PARSED_ARG[*]}
+				HAVE_MODULE=1
+				;;
+			-n|--no-color)
+				p_remove_colors
+				;;
+			*)
+				[[ "${1}" =~ --?.* ]] && p_error_parse "invalid options -- '${1}'"
+				TMP_PATH=$(realpath ${1})
+				[ ! -f "${TMP_PATH}" ] && p_error_parse "${1}: no such file"
+				EXEC_PATH=${TMP_PATH}
+				;;
+		esac
+		shift
+	done
+	post_parsing
+	# debug_print_parse_arg
+}

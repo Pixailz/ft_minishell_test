@@ -1,0 +1,79 @@
+#!/bin/bash
+: 'Author:     Pixailz'
+: 'created:    20/10/2022 13:49:43'
+: 'updated:    27/10/2022 07:07:36'
+
+#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#==#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
+#> PARTS
+
+function	basic_part()
+{
+	echo_deep_part "part" "basic"
+	exec_module "perm"
+	exec_module "parsing"
+	exec_module "pipe"
+	exec_module "redirection"
+}
+
+function	built_part()
+{
+	echo_deep_part "part" "builtin"
+	exec_module "builtin_cd"
+	exec_module "builtin_exit"
+}
+
+function	do_parts()
+{
+	for part in ${DO_PART[*]}; do
+		${part}_part
+	done
+}
+
+function	do_modules()
+{
+	for module in ${DO_MODULE[*]}; do
+		exec_module ${module}
+	done
+}
+
+#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#==#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
+
+#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#==#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
+#> MAIN
+
+function	prepare_test()
+{
+	reset_deepfile
+	clean_test
+	# create a dir test
+	mkdir test
+}
+
+function	clean_test()
+{
+	# if directory or file test exists remove it
+	[ -d test ] || [ -f test ] && rm -rf test
+}
+
+function	main_entry()
+{
+	prepare_test
+	install_modules
+	if [ "${HAVE_MODULE}" == 1 ]; then
+		do_modules
+	else
+		do_parts
+	fi
+	clean_test
+}
+
+source ./.config
+
+parse_arg ${@}
+
+# if not sourced, BASH_SOURCE keep current file when $0 keep launched file
+if [ "${BASH_SOURCE[0]}" -ef "${0}" ]; then
+	main_entry
+fi
+
+#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#==#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#

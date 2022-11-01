@@ -1,0 +1,86 @@
+#!/bin/bash
+
+#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#==#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
+#> echo deep
+
+function	echo_deep_section() {
+	vertical_offset=$(printf "%0.s${HO}" $(seq 3 ${TITLE_LENGTH}))
+	center_off=$(( ${TITLE_LENGTH} - ${#1}))
+	center_splited=$(( (${center_off} - 2) / 2 ))
+	if [ $(( ${center_off} % 2)) == 0 ]; then
+		CL=$(printf "%0.s " $(seq 1 ${center_splited}))
+		CR=$(printf "%0.s " $(seq 1 ${center_splited}))
+	else
+		CL=$(printf "%0.s " $(seq 1 ${center_splited}))
+		CR=$(printf "%0.s " $(seq 1 ${center_splited}) 1)
+	fi
+	if [ "${2}" == "1" ]; then
+		printf "${DEEP_SEC_COLOR}${UL}${vertical_offset}${UR}\n" >> ${DEEPTHOUGHT_FILE}
+		printf "${VE}${CL}${reset}${1}${DEEP_SEC_COLOR}${CR}${VE}\n" >> ${DEEPTHOUGHT_FILE}
+		printf "${LL}${vertical_offset}${LR}${reset}\n" >> ${DEEPTHOUGHT_FILE}
+	fi
+	printf "${DEEP_SEC_COLOR}${UL}${vertical_offset}${UR}\n"
+	printf "${VE}${CL}${reset}${1}${DEEP_SEC_COLOR}${CR}${VE}\n"
+	printf "${LL}${vertical_offset}${LR}${reset}\n"
+}
+
+function	echo_deep()
+{
+	local	offset=${1}
+	local	mode=${2}
+	local	msg=${3}
+	local	print_out=${4}
+	local	first_part=""
+	local	offset_tab=""
+
+	while [ "${offset}" != "0" ]; do
+		offset_tab="${offset_tab}${PRINT_OFFSET_STR}"
+		offset=$((${offset} - 1))
+	done
+	if [ "${mode}" == "-1" ]; then
+		first_part="${msg}"
+	elif [ "${mode}" == "0" ]; then
+		first_part="${FAILED}${msg}"
+	elif [ "${mode}" == "1" ]; then
+		first_part="${SUCCESS}${msg}"
+	elif [ "${mode}" == "2" ]; then
+		first_part="${INFO}${msg}"
+	elif [ "${mode}" == "3" ]; then
+		first_part="${WARN}${msg}"
+	fi
+	msg=$(printf "${first_part}" | sed "s|^|${offset_tab}|")
+	if [ "${print_out}" == "1" ]; then
+		printf "${msg}\n"
+	fi
+	printf "${msg}\n" >> ${DEEPTHOUGHT_FILE}
+}
+
+function	echo_deep_new_line()
+{
+	echo_deep 0 -1 "" 1
+}
+
+function	reset_deepfile()
+{
+	[ -f ${DEEPTHOUGHT_FILE} ] && rm -f ${DEEPTHOUGHT_FILE}
+	echo_deep_section "MINISHELL tester (pix)." 1
+}
+
+function	echo_deep_part() {
+	local	part_str=${orange}${1}${reset}
+	local	part_name=${2}
+
+	DEEP_PART_NAME=${part_name}
+	echo_deep_new_line
+	echo_deep 0 3 "${blue}${part_name}${reset} ${part_str}" 1
+}
+
+function	echo_deep_sect()
+{
+	local	sect_name=${1}
+	local	part_name=${blue}${DEEP_PART_NAME}${reset}
+
+	echo_deep_new_line
+	echo_deep 1 2 "${part_name} ${sect_name}" 1
+}
+#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#==#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#

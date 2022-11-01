@@ -1,0 +1,30 @@
+#!/bin/debug
+
+function	debug_print_array()
+{
+	local	array_name=${1}
+	local	array_value=${*/${array_name}/}
+	local	begin_str="${blue}${array_name}${reset}["
+	local	array_lvl=0
+
+	[ ${#} == 1 ] && p_pass "empty array" 1
+
+	for item in ${array_value[*]}; do
+		local	mid_str="${orange}${array_lvl}${reset}] "
+		p_warn "${begin_str}${mid_str}[${green}${item}${reset}]"
+		array_lvl=$(( ${array_lvl} + 1 ))
+	done
+}
+
+function	debug_print_var()
+{
+	local	var_name=${1}
+	local	expected=${2}
+	local	var_value=${!var_name}
+
+	if [ ${var_value} == ${expected} ]; then
+		p_pass "${blue}${var_name}${reset} == ${green}${expected}${reset}"
+	else
+		p_pass "${blue}${var_name}${reset} != ${red}${expected}${reset}" 1
+	fi
+}

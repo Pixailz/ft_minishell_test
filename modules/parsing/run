@@ -1,0 +1,30 @@
+#!/bin/bash
+
+function	pre_exec_parsing()
+{
+	echo_deep_sect "parsing"
+	echo pass > test/file
+	return 0
+}
+
+function	exec_parsing()
+{
+	exec_command "ca't' -e test/file"
+	exec_command "ca't -e' \"test/file\""
+	exec_command "cat -e \"test/'fi'le\""
+	exec_command "cat -e \"test/'fi'\"le\"\""
+	return 0
+}
+
+# if not sourced, BASH_SOURCE keep current file when $0 keep launched file
+if [ "${BASH_SOURCE[0]}" -ef "${0}" ]; then
+	if [ "${0}" -ef "run" ]; then
+		source ../../run
+	elif [ "${0}" -ef "parsing/run" ]; then
+		source ../run
+	else
+		source ./run
+	fi
+	pre_exec_parsing
+	exec_parsing
+fi

@@ -1,0 +1,29 @@
+#!/bin/bash
+
+function	pre_exec_builtin_cd()
+{
+	echo_deep_sect "cd"
+	return 0
+}
+
+function	exec_builtin_cd()
+{
+	# 1: Permission Denied
+	exec_command "cd /root"
+	# 1: No such file or directory
+	exec_command "cd /test"
+	return 0
+}
+
+# if not sourced, BASH_SOURCE keep current file when $0 keep launched file
+if [ "${BASH_SOURCE[0]}" -ef "${0}" ]; then
+	if [ "${0}" -ef "run" ]; then
+		source ../../run
+	elif [ "${0}" -ef "builtin_cd/run" ]; then
+		source ../run
+	else
+		source ./run
+	fi
+	pre_exec_builtin_cd
+	exec_builtin_cd
+fi

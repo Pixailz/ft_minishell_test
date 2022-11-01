@@ -1,0 +1,37 @@
+#!/bin/bash
+
+function	post_exec_module()
+{
+	local	last_return=${1}
+	local	function_name=${2}
+	local	begin_color=""
+
+	if [ ${DEBUG} ] && [ ${last_return} == 1 ]; then
+		if [ ${RETURN_VALUE} == 0 ]; then
+			return_value="[ ${green}0${reset} ]"
+		elif [ ${RETURN_VALUE} -lt 10 ]; then
+	 		return_value="[ ${red}${RETURN_VALUE}${reset} ]"
+		elif [ ${RETURN_VALUE} -lt 100 ]; then
+			return_value="[ ${red}${RETURN_VALUE}${reset}]"
+		else
+			return_value="[${red}${RETURN_VALUE}${reset}]"
+		fi
+		p_pass "${return_value} return from ${orange}${function_name}${reset}" ${RETURN_VALUE}
+	fi
+}
+
+function	exec_module()
+{
+	local	module_name=${1}
+	last_return=""
+
+	if_function_do "pre_exec_${module_name}"
+	post_exec_module ${?} "pre_exec_${module_name}"
+
+	if_function_do "exec_${module_name}"
+	post_exec_module ${?} "exec_${module_name}"
+
+	if_function_do "post_exec_${module_name}"
+	post_exec_module ${?} "post_exec_${module_name}"
+	return ${RETURN_VALUE}
+}

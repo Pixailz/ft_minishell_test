@@ -1,0 +1,39 @@
+#!/bin/bash
+
+: ' find_file TO_FIND [ MODE ]
+TO_FIND     folder / file name to search
+MODE        could be d for directory of f for file, default f
+
+return      set FILE_PATH according if TO_FIND is in parent folder,
+            otherwise FILE_PATH is set to nothing
+'
+function	find_file()
+{
+	local	to_find=${1}
+	if [ "${2}" == "d" ]; then
+		local	mode=d
+	else
+		local	mode=f
+	fi
+	# tmp var
+	local	buff
+	# ls with no alias
+	local	ls_bin=$(which ls)
+	# where the function is launched
+	local	save_pwd=${PWD}
+
+	while [ ! "${FOUND_PATH}" ]; do
+		# ls almost all file and grep exacly what we want
+		buff=$(${ls_bin} -A . | grep "^${to_find}$")
+		# get full path
+		buff="${PWD}/${buff}"
+
+		if [ "${buff##*/}" == "${to_find}" ]; then
+			[ ${mode} == 'f' ] && [ -f ${buff} ] && export FOUND_PATH="${buff}"
+			[ ${mode} == 'd' ] && [ -d ${buff} ] && export FOUND_PATH="${buff}/"
+		fi
+		[ ${PWD} == "/" ] && break
+		cd ..
+	done
+	cd ${save_pwd}
+}

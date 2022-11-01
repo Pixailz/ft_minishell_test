@@ -1,0 +1,52 @@
+#!/bin/bash
+
+: ' install_module MODULE
+install_file        install file to source
+install_func        entry func of module
+post_install_func   post install func of module
+'
+function	install_module()
+{
+	local	install_file="${MODULE_DIR}/${1}/${MODULE_ENTRY_FILE}"
+	local	install_func="${PREFIX_INSTALL_MODULE}${1}"
+	local	post_install_func="${PREFIX_POST_INSTALL_MODULE}${1}"
+
+	# source install file
+	if_file_exist_source ${install_file}
+	# do install
+	if_function_do ${install_func}
+	# do post install
+	if_function_do ${post_install_func}
+}
+
+function	install_modules_basic()
+{
+	install_module "perm"
+	install_module "pipe"
+	install_module "parsing"
+	install_module "redirection"
+}
+
+function	install_modules_built()
+{
+	install_module "builtin_cd"
+	install_module "builtin_exit"
+}
+
+: ' install_modules
+DO_PART : specific array to do
+if len DO_PART == 0 do all
+'
+function	install_modules()
+{
+	if [ ${#DO_PART[*]} == 0 ]; then
+		for module in ${MODULES[*]}; do
+			install_module ${module}
+		done
+		DO_PART=${PARTS[*]}
+		return
+	fi
+	for part in ${DO_PART[*]}; do
+		install_modules_${part}
+	done
+}

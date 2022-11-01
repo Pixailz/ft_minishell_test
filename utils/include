@@ -1,0 +1,14 @@
+#!/bin/bash
+
+source ${DIR_UTILS}/ask
+source ${DIR_UTILS}/colors
+source ${DIR_UTILS}/debug
+source ${DIR_UTILS}/find_parent
+source ${DIR_UTILS}/if/file_exist
+source ${DIR_UTILS}/if/function
+source ${DIR_UTILS}/if/option
+source ${DIR_UTILS}/module/install
+source ${DIR_UTILS}/module/exec
+source ${DIR_UTILS}/parse
+source ${DIR_UTILS}/deep
+source ${DIR_UTILS}/report

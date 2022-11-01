@@ -1,0 +1,171 @@
+#!/bin/bash
+
+#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#==#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
+#> TEST
+
+function	clean_out_user_cmd()
+{
+	# remove the ansi escaped character, should begin with \001 and finish with \002
+	out_user="$(echo "${out_user}" | sed "s/\o001.*\o002//g")"
+	# remove line with the command and the three last command
+	out_user="$(echo "${out_user}" | tail -n +${tail_arg} | head -n -${head_arg} )"
+}
+
+function	report_out()
+{
+	if [ "${out_expected}" == "${out_user}" ]; then
+		echo_deep 3 1 "diff ok"
+	else
+		echo_deep 3 0 "diff not ok" 1
+	fi
+	echo_deep 4 -1 "${green}expected${reset}:"
+	echo_deep 5 -1 "${out_expected}"
+	echo_deep 4 -1 "${red}yours${reset}:"
+	echo_deep 5 -1 "${out_user}"
+}
+
+function	report_return_value()
+{
+	if [ "${same_return_value}" == "1" ]; then
+		echo_deep 3 1 "return value are the same [${return_value_expected}]"
+	else
+		echo_deep 3 0 "return value are not the same" 1
+		echo_deep 4 -1 "${green}expected${reset}(${return_value_expected}) \
+| ${red}yours${reset}:(${return_value_user})"
+	fi
+}
+
+function	report_diff_files()
+{
+	local	bash_have=0
+	local	user_have=0
+	local	first_part=""
+	local	second_part=""
+	local	third_part=""
+	local	file_in_user=($(ls ${TMP_DIR_USER}))
+	local	file_in_bash=($(ls ${TMP_DIR_BASH}))
+	local	joined=${file_in_user[*]}
+
+	for file_in_bash in $(ls ${TMP_DIR_BASH}); do
+		is_already=0
+		for file_in_user in $(ls ${TMP_DIR_USER}); do
+			[ ${file_in_bash} ==  ${file_in_user} ] && is_already=1 && break
+		done
+		[ ${is_already} == 0 ] && joined+=(${file_in_bash})
+	done
+
+	for file in ${joined[*]}; do
+		first_part="${blue}${file}${reset} : "
+		[ -f "${TMP_DIR_BASH}/${file}" ] && bash_have=1 || bash_have=0
+		[ -f "${TMP_DIR_USER}/${file}" ] && user_have=1 || user_have=0
+		if [ ${bash_have} == ${user_have} ]; then
+			bash_str=$(cat "${TMP_DIR_BASH}/${file}")
+			user_str=$(cat "${TMP_DIR_USER}/${file}")
+			if [ ${bash_str} == ${user_str} ]; then
+				echo_deep 2 3 "\`${blue}${cmd_user}${reset}'"
+				echo_deep 4 1 "${first_part} diff ok"
+			else
+				echo_deep 2 3 "\`${blue}${cmd_user}${reset}'" 1	cmd
+				echo_deep 4 0 "${first_part} diff not ok" 1
+				echo_deep 5 -1 "${green}bash${reset}:"
+				echo_deep 6 -1 "${bash_str}"
+				echo_deep 5 -1 "${red}user${reset}:"
+				echo_deep 6 -1 "${user_str}"
+			fi
+		else
+			echo_deep 2 3 "\`${blue}${cmd_user}${reset}'" 1
+			if [ ${bash_have} == 1 ]; then
+				second_part="${red}user${reset} not here, ${green}bash${reset} here :"
+				to_print=$(cat ${TMP_DIR_BASH}/${file})
+			else
+				second_part="${red}bash${reset} not here, ${green}user${reset} here :"
+				to_print=$(cat ${TMP_DIR_USER}/${file})
+			fi
+			echo_deep 4 0 "${first_part}${second_part}${third_part}" 1
+			echo_deep 5 -1 "${to_print}" 1
+		fi
+	done
+}
+
+function	replace_tmp_file()
+{
+	local	mode=${1}
+	local	str="${2}"
+	local	level=0
+
+	for id in ${TMP_FILE_REPL[*]}; do
+		if [ "${mode}" == 1 ]; then
+			str=$(echo ${str} | sed "s|${TMP_FILE_REPL[${level}]}|${TMP_FILE_BASH[${level}]}|g")
+		else
+			str=$(echo ${str} | sed "s|${TMP_FILE_REPL[${level}]}|${TMP_FILE_USER[${level}]}|g")
+		fi
+		level=$((${level} + 1))
+	done
+	REPLACED=${str}
+}
+
+function	exec_command()
+{
+	local	out_expected
+	local	cmd=${1}
+	local	cmd_bash=${cmd}
+	local	cmd_user=${cmd}
+	local	return_value_expected
+	local	same_return_value
+
+	[ "${2}" == "" ] && tail_arg=${DFL_TAIL_ARG} || tail_arg=${2}
+	[ "${3}" == "" ] && head_arg=${DFL_HEAD_ARG} || head_arg=${3}
+	# exec real bash
+	if [ ${exec_mode} == 3 ]; then
+		replace_tmp_file 1 "${cmd}"
+		cmd_bash=${REPLACED}
+		replace_tmp_file 0 "${cmd}"
+		cmd_user=${REPLACED}
+	fi
+	out_expected=$(bash -c "${cmd_bash}" 2>&1)
+	# catch real bash return value
+	return_value_expected=${?}
+	# exec minishell
+	if [ ${exec_mode} == 1 ]; then
+		exec_command="bash -c \"${cmd_user}\""
+	else
+		exec_command="${cmd_user}"
+	fi
+	if [ ${exec_mode} == 2 ]; then
+		out_user="$(echo -e "${exec_command}\necho return_value=\$?" | ${EXEC_PATH} 2>&1)"
+		return_value_user=$?
+	elif [ ${exec_mode} == 3 ]; then
+		out_user="$(echo -e "${exec_command}\necho return_value=\$?" | ${EXEC_PATH} 2>&1)"
+		# catch minishell return value
+		return_value_user=$(echo "${out_user}" | sed -nE 's/.*return_value=([0-9]{1,3})/\1/p')
+	else
+		out_user="$(echo -e "${exec_command}\necho return_value=\$?" | ${EXEC_PATH} 2>&1)"
+		# catch minishell return value
+		return_value_user=$(echo "${out_user}" | sed -nE 's/.*return_value=([0-9]{1,3})/\1/p')
+	fi
+
+	# clean prompt output
+	clean_out_user_cmd "${exec_mode}"
+	# check if return value match
+	same_return_value=0
+	if [ "${return_value_expected}" == "${return_value_user}" ]; then
+		same_return_value=1
+	fi
+	# report test
+	if [ "${same_return_value}" == 0 ]; then
+		echo_deep 2 3 "\`${blue}${cmd_user}${reset}'" 1
+	elif [ "${EXEC_DISABLE_DIFF}" == 0 ] && [ "${out_expected}" != "${out_user}" ]; then
+		echo_deep 2 3 "\`${blue}${cmd_user}${reset}'" 1
+	fi
+	report_return_value ${same_return_value}
+	if [ "${EXEC_DISABLE_DIFF}" == 0 ]; then
+		report_out
+	fi
+	if [ ${exec_mode} == 3 ]; then
+		report_diff_files
+	else
+		echo_deep 2 3 "\`${blue}${cmd_user}${reset}'"
+	fi
+}
+
+#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#==#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#

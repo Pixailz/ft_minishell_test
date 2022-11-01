@@ -1,0 +1,18 @@
+#!/bin/bash
+
+: ' is_option OPTION_STR
+OPTION_STR         check if string is an options
+return              0 if no, 1 if long and 2 if short ; options
+'
+function	is_option()
+{
+	local	options_str=${1}
+
+	if [[ ${options_str} =~ --.* ]]; then
+		return 1
+	elif [[ ${options_str} =~ -.* ]]; then
+		return 2
+	else
+		return 0
+	fi
+}

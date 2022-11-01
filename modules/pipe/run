@@ -1,0 +1,40 @@
+#!/bin/bash
+
+function	pre_exec_pipe()
+{
+	echo_deep_sect "pipe"
+	echo "Seekers" > test/file
+	TEST_FILE_PATH=$(realpath test/file)
+	return 0
+}
+
+function	exec_pipe()
+{
+	exec_command "echo pass | cat -e"
+	exec_command "echo pass '|' cat -e"
+	exec_command "echo pass \"|\" cat -e"
+	exec_command "echo pass | grep 'ass'"
+	exec_command "echo pass1 | echo pass2"
+	exec_command "echoo pass | cat ${TEST_FILE_PATH}"
+	exec_command "echo pass | grep -o ass | cat -e"
+	exec_command "echo1 pass | echo pass | echo2 pass"
+	exec_command "echo1 pass | echo2 pass | echo pass"
+	exec_command "echo pass | cat -e | cat -e | cat -e | cat -e | cat -e | cat -e"
+	exec_command "ls -la ${HOME} | head -n 10"
+	exec_command "cat /etc/os-release | head -n 10"
+	exec_command "cat /dev/urandom | head -c 10 | xxd"
+	return 0
+}
+
+# if not sourced, BASH_SOURCE keep current file when $0 keep launched file
+if [ "${BASH_SOURCE[0]}" -ef "${0}" ]; then
+	if [ "${0}" -ef "run" ]; then
+		source ../../run
+	elif [ "${0}" -ef "pipe/run" ]; then
+		source ../run
+	else
+		source ./run
+	fi
+	pre_exec_pipe
+	exec_pipe
+fi

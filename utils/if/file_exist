@@ -1,0 +1,47 @@
+#!/bin/bash
+
+: ' move_if_file_exist SRC DST
+SRC     source file
+DST     destination file
+'
+function	move_if_file_exist()
+{
+	local	src=${1}
+	local	dst=${2}
+	local	dst_folder=${2%/*}
+	local	tmp=""
+	local	do_copy=1
+
+	if [ "${FORCE_INSTALL}" == "" ] && [ -f ${dst} ]; then
+		ask "file ${red}${2##*/}${reset} exist, do you wan't to overwrite it" "y"
+		[ ${?} == 0 ] && do_copy=0
+	fi
+	if [ ${do_copy} == 1 ]; then
+		if [ ! -d ${dst_folder} ]; then
+			p_no_such "${dst_folder}"
+			mkdir -p ${dst_folder}
+		fi
+		cp -f ${src} ${dst}
+		if [ ${?} == 0 ]; then
+			p_pass "copied ${green}.${src/${DIR_MODULE}/}${reset} to ${green}${dst}${reset}."
+		else
+			p_pass "copy ${red}failed${reset}." 1
+		fi
+	else
+		p_warn "configuration ${orange}skiped${reset}."
+	fi
+}
+
+: ' if_file_exist_source FILE_PATH
+FILE_PATH       file_path   where source file if exists
+'
+function	if_file_exist_source()
+{
+	local	file_path=${1}
+
+	if [ -f ${file_path} ]; then
+		source ${file_path}
+	else
+		p_no_such ${file_path}
+	fi
+}

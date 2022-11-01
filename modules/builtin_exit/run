@@ -1,0 +1,56 @@
+#!/bin/bash
+
+function	pre_exec_builtin_exit()
+{
+	echo_deep_sect "exit"
+	EXEC_DISABLE_DIFF=1
+	# 1: exit without args should return last $?
+	exec_command "cd /root"
+	exec_mode=2
+	return 0
+}
+
+
+function	exec_builtin_exit()
+{
+	exec_command "exit 123"
+	exec_command "exit 1 1"
+	exec_command "exit a 1"
+	exec_command "exit 1 a"
+	exec_command "exit 1 1 1"
+	exec_command "exit 1 1 a"
+	exec_command "exit 1 a 1"
+	exec_command "exit a 1 1"
+	exec_command "exit 255"
+	exec_command "exit 256"
+	exec_command "exit -2147483648"				# 0
+	exec_command "exit 2147483647"				# 255
+	exec_command "exit 9223372036854775807"		# 255
+	exec_command "exit 9223372036854775808"		# 2
+	exec_command "exit 92233720368547758080"	# 2
+	exec_command "exit -92233720368547758090"	# 2
+	exec_command "exit -9223372036854775809"	# 2
+	exec_command "exit -9223372036854775808"	# 0
+	return 0
+}
+
+function	post_exec_builtin_exit()
+{
+	EXEC_DISABLE_DIFF=0
+	exec_mode=0
+	return 0
+}
+
+# if not sourced, BASH_SOURCE keep current file when $0 keep launched file
+if [ "${BASH_SOURCE[0]}" -ef "${0}" ]; then
+	if [ "${0}" -ef "run" ]; then
+		source ../../run
+	elif [ "${0}" -ef "builtin_exit/run" ]; then
+		source ../run
+	else
+		source ./run
+	fi
+	pre_exec_builtin_exit
+	exec_builtin_exit
+	post_exec_builtin_exit
+fi

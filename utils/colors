@@ -1,0 +1,126 @@
+#!/bin/bash
+
+#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#==#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
+#> BASH COLOR
+
+# BEG_ESC='\001'
+# END_ESC='\002'
+
+green="${BEG_ESC}\e[38;5;82m${END_ESC}"
+red="${BEG_ESC}\e[38;5;196m${END_ESC}"
+yellow="${BEG_ESC}\e[33m${END_ESC}"
+blue="${BEG_ESC}\e[38;5;75m${END_ESC}"
+orange="${BEG_ESC}\e[38;5;214m${END_ESC}"
+lgreen="${BEG_ESC}\e[92m${END_ESC}"
+lyellow="${BEG_ESC}\e[93m${END_ESC}"
+lblue="${BEG_ESC}\e[94m${END_ESC}"
+lmagenta="${BEG_ESC}\e[95m${END_ESC}"
+lcyan="${BEG_ESC}\e[96m${END_ESC}"
+
+blink="${BEG_ESC}\e[05m${END_ESC}"
+blink_red="${BEG_ESC}${blink}${red}${END_ESC}"
+restore="${BEG_ESC}\033[0m${END_ESC}"
+reset="${BEG_ESC}\e[0m${END_ESC}"
+
+P_INFO="${lcyan}[INFO]${reset}"
+P_WARN="${orange}[WARN]${reset}"
+P_QUES="${blue}[QUE?]${reset}"
+P_PASS="${green}[PASS]${reset}"
+P_FAIL="${red}[FAIL]${reset}"
+P_ERRO="${red}[ERRO]${reset}"
+SUCCESS="[${green}+${reset}] "
+FAILED="[${red}-${reset}] "
+INFO="[${blue}*${reset}] "
+WARN="[${orange}*${reset}] "
+
+UL="\xe2\x95\x94"
+HO="\xe2\x95\x90"
+UR="\xe2\x95\x97"
+VE="\xe2\x95\x91"
+LL="\xe2\x95\x9a"
+LR="\xe2\x95\x9d"
+
+DEEP_SEC_COLOR=${green}
+
+function	p_remove_colors()
+{
+	green=""
+	red=""
+	yellow=""
+	blue=""
+	orange=""
+	lgreen=""
+	lyellow=""
+	lblue=""
+	lmagenta=""
+	lcyan=""
+	blink=""
+	blink_red=""
+	restore=""
+	reset=""
+	SUCCESS="[+] "
+	FAILED="[-] "
+	INFO="[*] "
+	WARN="[*] "
+	P_INFO="[INFO]"
+	P_WARN="[WARN]"
+	P_QUES="[QUE?]"
+	P_PASS="[PASS]"
+	P_FAIL="[FAIL]"
+	P_ERRO="[ERRO]"
+	DEEP_SEC_COLOR=""
+}
+
+# print function
+
+## print information
+function	p_info()
+{
+	printf "${P_INFO} $1${reset}\n"
+}
+
+## print warn
+function	p_warn()
+{
+	printf "${P_WARN} $1${reset}\n"
+}
+
+## print question
+function	p_ques()
+{
+	if [ "${2}" == '1' ]; then
+		printf "${P_QUES} $1${reset}\b"
+	else
+		printf "${P_QUES} $1${reset}\n"
+	fi
+}
+
+## print success or not
+function	p_pass() {
+	if [ -z ${2} ] || [ ${2} == 0 ]; then
+		printf "${P_PASS} $1${reset}\n"
+	else
+		printf "${P_FAIL} $1${reset}\n"
+	fi
+}
+
+## print error and quit
+function	p_erro()
+{
+	printf "${P_ERRO} $1${reset}\n"
+	exit
+}
+
+## print pause and wait
+function	p_pause()
+{
+	p_info "Press [Enter] to continue.."
+	read readEnterkey
+}
+
+## print no such file or directory
+function	p_no_such()
+{
+	p_warn "no such file or directory (${orange}${file_path}${reset})."
+}
+#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#==#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#

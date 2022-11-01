@@ -2,19 +2,6 @@
 test unitaire sur notre version de minishell
 
 ## TO TEST
-- `sleep 3 | cat file`
-- `sleep 3 | catt file`
-- `echo pass | grep 'ass'`
-- `echo test1 | echo test2`
-- `echoo pass | cat file`
-- `cat | cat -e`
-- `cat | ls | cat`
-- `ping -c4 google.com | cat -e`
-- `grep -oE "a|b" | cat -e`
-- `cat -e | grep -o "ass"`
-- `cat | cat -e | cat -e`
-- `echo pass | grep -o ass | cat -e`
-- `echo pass | cat1 file | cat2 file`
 - `< file cat | < file cat`
 - `< file cat > outfile | < file cat`
 - `< file cat > outfile1 | < file cat >> outfile2`

@@ -2,7 +2,7 @@
 
 function	pre_exec_redirection()
 {
-	echo_deep_sect "redirection"
+	echo_log_sect "redirection"
 	TMP_DIR_USER=${DIR_BASE}/test/expect_user
 	[ -d ${TMP_DIR_USER} ] || [ -f ${TMP_DIR_USER} ] && rm -rf ${TMP_DIR_USER}
 	mkdir -p ${TMP_DIR_USER}
@@ -15,7 +15,7 @@ function	pre_exec_redirection()
 		TMP_FILE_BASH+=(${TMP_DIR_BASH/${DIR_BASE}\//}/${TMP_FILE[${#TMP_FILE[@]} - 1]})
 		TMP_FILE_REPL+=($(cat /dev/urandom | xxd -p -l 3 -g 8))
 	done
-	exec_mode=3
+	EXEC_MODE=3
 	EXEC_DISABLE_DIFF=1
 	return 0
 }
@@ -23,28 +23,28 @@ function	pre_exec_redirection()
 function	exec_redirection()
 {
 	exec_command "echo pass > ${TMP_FILE_REPL[0]}"
-	exec_command "\
-echo pass1 > ${TMP_FILE_REPL[0]} | \
-echo pass2 > ${TMP_FILE_REPL[1]} | \
-echo pass3 > ${TMP_FILE_REPL[2]} | \
-echo pass4 > ${TMP_FILE_REPL[3]}"
-	exec_command "\
-${TMP_FILE_REPL[0]} < echo pass1 > ${TMP_FILE_REPL[4]} | \
-${TMP_FILE_REPL[1]} < echo pass2 > ${TMP_FILE_REPL[5]} | \
-${TMP_FILE_REPL[2]} < echo pass3 > ${TMP_FILE_REPL[6]} | \
-${TMP_FILE_REPL[3]} < echo pass4 > ${TMP_FILE_REPL[7]}"
-	exec_command "\
-${TMP_FILE_REPL[0]} < echo pass1 > ${TMP_FILE_REPL[4]} >> ${TMP_FILE_REPL[8]} | \
-${TMP_FILE_REPL[1]} < echo pass2 > ${TMP_FILE_REPL[5]} >> ${TMP_FILE_REPL[9]} | \
-${TMP_FILE_REPL[2]} < echo pass3 > ${TMP_FILE_REPL[6]} >> ${TMP_FILE_REPL[10]} | \
-${TMP_FILE_REPL[3]} < echo pass4 > ${TMP_FILE_REPL[7]} >> ${TMP_FILE_REPL[11]}"
+# 	exec_command "\
+# echo pass1 > ${TMP_FILE_REPL[0]} | \
+# echo pass2 > ${TMP_FILE_REPL[1]} | \
+# echo pass3 > ${TMP_FILE_REPL[2]} | \
+# echo pass4 > ${TMP_FILE_REPL[3]}"
+# 	exec_command "\
+# ${TMP_FILE_REPL[0]} < echo pass1 > ${TMP_FILE_REPL[4]} | \
+# ${TMP_FILE_REPL[1]} < echo pass2 > ${TMP_FILE_REPL[5]} | \
+# ${TMP_FILE_REPL[2]} < echo pass3 > ${TMP_FILE_REPL[6]} | \
+# ${TMP_FILE_REPL[3]} < echo pass4 > ${TMP_FILE_REPL[7]}"
+# 	exec_command "\
+# ${TMP_FILE_REPL[0]} < echo pass1 > ${TMP_FILE_REPL[4]} >> ${TMP_FILE_REPL[8]} | \
+# ${TMP_FILE_REPL[1]} < echo pass2 > ${TMP_FILE_REPL[5]} >> ${TMP_FILE_REPL[9]} | \
+# ${TMP_FILE_REPL[2]} < echo pass3 > ${TMP_FILE_REPL[6]} >> ${TMP_FILE_REPL[10]} | \
+# ${TMP_FILE_REPL[3]} < echo pass4 > ${TMP_FILE_REPL[7]} >> ${TMP_FILE_REPL[11]}"
 	return 0
 }
 
 function	post_exec_redirection()
 {
 	EXEC_DISABLE_DIFF=0
-	exec_mode=0
+	EXEC_MODE=0
 	return 0
 }
 

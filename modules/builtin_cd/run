@@ -2,7 +2,7 @@
 
 function	pre_exec_builtin_cd()
 {
-	echo_deep_sect "cd"
+	echo_log_sect "cd"
 	return 0
 }
 

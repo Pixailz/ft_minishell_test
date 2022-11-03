@@ -2,11 +2,11 @@
 
 function	pre_exec_builtin_exit()
 {
-	echo_deep_sect "exit"
+	echo_log_sect "exit"
 	EXEC_DISABLE_DIFF=1
 	# 1: exit without args should return last $?
 	exec_command "cd /root"
-	exec_mode=2
+	EXEC_MODE=2
 	return 0
 }
 
@@ -37,7 +37,7 @@ function	exec_builtin_exit()
 function	post_exec_builtin_exit()
 {
 	EXEC_DISABLE_DIFF=0
-	exec_mode=0
+	EXEC_MODE=0
 	return 0
 }
 

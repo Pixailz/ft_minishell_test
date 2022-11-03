@@ -2,15 +2,16 @@
 
 function	pre_exec_parsing()
 {
-	echo_deep_sect "parsing"
-	echo pass > test/file
+	echo_log_sect "parsing"
+	TMP_FILE=./${TEST_DIR}/file
+	echo Seekers > ${TMP_FILE}
 	return 0
 }
 
 function	exec_parsing()
 {
-	exec_command "ca't' -e test/file"
-	exec_command "ca't -e' \"test/file\""
+	exec_command "ca't' -e ${TMP_FILE}"
+	exec_command "ca't -e' \"${TMP_FILE}\""
 	exec_command "cat -e \"test/'fi'le\""
 	exec_command "cat -e \"test/'fi'\"le\"\""
 	return 0

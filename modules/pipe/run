@@ -2,9 +2,9 @@
 
 function	pre_exec_pipe()
 {
-	echo_deep_sect "pipe"
-	echo "Seekers" > test/file
-	TEST_FILE_PATH=$(realpath test/file)
+	echo_log_sect "pipe"
+	TEST_FILE_PATH=${DIR_BASE}/test/file
+	echo "Seekers" > ${TEST_FILE_PATH}
 	return 0
 }
 

@@ -40,44 +40,71 @@ function	debug_print_parse_arg()
 function	post_parsing()
 {
 	local	is_good
-	local	do_part
-	local	part
+	local	to_check
+	local	from_check
 
-	if [ "${HAVE_PART}" == 1 ] && [ ${#DO_PART[@]} == 0 ]; then
+	# check non sens arguments
+	## if -p supplied but no arg given
+	if [ ${HAVE_PART} == 1 ] && [ ${#DO_PART[@]} == 0 ]; then
 		p_error_parse "wrong usage"
 	fi
-	if [ "${HAVE_MODULE}" == 1 ] && [ ${#DO_MODULE[@]} == 0 ]; then
+	## if -m supplied but no arg given
+	if [ ${HAVE_MODULE} == 1 ] && [ ${#DO_MODULE[@]} == 0 ]; then
 		p_error_parse "wrong usage"
 	fi
-	if [ "${HAVE_MODULE}" == 1 ] && [ "${HAVE_PART}" == 1 ]; then
+	## if -m and -p supplied both
+	if [ ${HAVE_MODULE} == 1 ] && [ "${HAVE_PART}" == 1 ]; then
 		p_error_parse "wrong usage"
 	fi
 
-	if [ "${HAVE_MODULE}" == 1 ]; then
-		do_part=(${DO_MODULE[*]})
-		part=(${MODULES[*]})
-	elif [ "${HAVE_PART}" == 1 ]; then
-		do_part=(${DO_PART[*]})
-		part=(${PARTS[*]})
+	# set to_check and from_check
+	## if -m supplied
+	if [ ${HAVE_MODULE} == 1 ]; then
+		to_check=(${DO_MODULE[*]})
+		from_check=(${MODULES[*]})
+	## if -p supplied
+	elif [ ${HAVE_PART} == 1 ]; then
+		to_check=(${DO_PART[*]})
+		from_check=(${PARTS[*]})
+	## set default and leave
+	else
+		DO_MODULE=${MODULES[*]}
+		DO_PART=${PARTS[*]}
+		return
 	fi
-	for to_str in ${do_part[*]}; do
+	# check from input list ...
+	for to_str in ${to_check[*]}; do
+		# (set is_good variable to 0)
 		is_good=0
-		for from_str in ${part[*]}; do
+		# ... to default list ...
+		for from_str in ${from_check[*]}; do
+			# ... if is equal to default.
 			if [ ${to_str} == ${from_str} ]; then
+				# (set is_good variable to 1)
 				is_good=1
+				# break
 				break
 			fi
 		done
+		# if not good from_str
 		if [ ${is_good} != 1 ]; then
+			# display error
+			# if have_part
 			if [ ${HAVE_PART} == 1 ]; then
+				# print wrong part name
 				p_warn "wrong ${green}part${reset} name (${red}${to_str}${reset})"
 			else
+				#10 print wrong part name
 				p_warn "wrong ${green}module${reset} name (${red}${to_str}${reset})"
 			fi
+			# go to usage func
 			usage
 		fi
 	done
-	[ ! ${EXEC_PATH} ] && p_error_parse "missing operand (${red}PATH${reset})"
+	: 'check if EXEC_PATH is supplied'
+	if [ ! -x ${EXEC_PATH} ]; then
+		p_error_parse "missing operand (${red}PATH${reset})"
+	fi
 }
 
 function	usage()
@@ -89,29 +116,34 @@ function	usage()
 	printf "  -h, --help        show this help\n"
 	printf "\n"
 	printf "  -p, --part        install part, available part:\n"
-	printf "                        - basic\n"
-	printf "                        - built-in\n"
+	for part in ${PARTS[*]}; do
+	printf "                        - ${part}\n"
+	done
 	printf "\n"
 	printf "  -m, --module      install modules, available module:\n"
 	printf "                        - all\n"
-	printf "                        - perm\n"
-	printf "                        - parsing\n"
-	printf "                        - pipe\n"
-	printf "                        - builtin_cd\n"
-	printf "                        - builtin_exit\n"
+	for module in ${MODULES[*]}; do
+	printf "                        - ${module}\n"
+	done
 	exit
 }
-# pars args, keep parsing even if launch modules
-## if -n, --no-color			disable_color
-## if -h, --help				help
 
-## if -p, --part				set DO_PART=part1 ... partn
-## if -m, --module				set DO_MODULE=module1 ... modulen
+: 'pars args, keep parsing even if launch modules
+if -n, --no-color			disable_color
+if -h, --help				help
 
-## -p && -m						false
-## -f|-n && -p | --part | -all		true
+if -p, --part				set DO_PART=part1 ... partn
+if -m, --module				set DO_MODULE=module1 ... modulen
+
+-p && -m						false
+-f|-n && -p | --part | -all		true'
 function	parse_arg()
 {
+	# set default value
+	HAVE_MODULE=0
+	HAVE_PART=0
+	EXEC_PATH=""
+
 	while [ "${1}" != "" ]; do
 		case ${1} in
 			-h|--help)
@@ -120,13 +152,13 @@ function	parse_arg()
 			-p|--part)
 				parse_short ${*}
 				shift $?
-				DO_PART=${PARSED_ARG[*]}
+				DO_PART=(${PARSED_ARG[*]})
 				HAVE_PART=1
 				;;
 			-m|--module)
 				parse_short ${*}
 				shift $?
-				DO_MODULE=${PARSED_ARG[*]}
+				DO_MODULE=(${PARSED_ARG[*]})
 				HAVE_MODULE=1
 				;;
 			-n|--no-color)

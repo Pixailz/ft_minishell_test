@@ -3,9 +3,13 @@
 #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#==#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
 #> echo deep
 
-function	echo_deep_section() {
+function	echo_log_section()
+{
+	local	msg
+	msg="$(echo -e "${1}" | sed -E "s/\\e\\[.*m//")"
+
 	vertical_offset=$(printf "%0.s${HO}" $(seq 3 ${TITLE_LENGTH}))
-	center_off=$(( ${TITLE_LENGTH} - ${#1}))
+	center_off=$(( ${TITLE_LENGTH} - ${#msg}))
 	center_splited=$(( (${center_off} - 2) / 2 ))
 	if [ $(( ${center_off} % 2)) == 0 ]; then
 		CL=$(printf "%0.s " $(seq 1 ${center_splited}))
@@ -24,7 +28,7 @@ function	echo_deep_section() {
 	printf "${LL}${vertical_offset}${LR}${reset}\n"
 }
 
-function	echo_deep()
+function	echo_log()
 {
 	local	offset=${1}
 	local	mode=${2}
@@ -33,54 +37,82 @@ function	echo_deep()
 	local	first_part=""
 	local	offset_tab=""
 
-	while [ "${offset}" != "0" ]; do
-		offset_tab="${offset_tab}${PRINT_OFFSET_STR}"
+	while [ ${offset} != 0 ]; do
+		offset_tab="${offset_tab}${PRINT_LOG_OFFSET_STR}"
 		offset=$((${offset} - 1))
 	done
-	if [ "${mode}" == "-1" ]; then
+	if [ ${mode} == -1 ]; then
 		first_part="${msg}"
-	elif [ "${mode}" == "0" ]; then
+	elif [ ${mode} == 0 ]; then
 		first_part="${FAILED}${msg}"
-	elif [ "${mode}" == "1" ]; then
+	elif [ ${mode} == 1 ]; then
 		first_part="${SUCCESS}${msg}"
-	elif [ "${mode}" == "2" ]; then
+	elif [ ${mode} == 2 ]; then
 		first_part="${INFO}${msg}"
-	elif [ "${mode}" == "3" ]; then
+	elif [ ${mode} == 3 ]; then
 		first_part="${WARN}${msg}"
 	fi
-	msg=$(printf "${first_part}" | sed "s|^|${offset_tab}|")
-	if [ "${print_out}" == "1" ]; then
+	msg=$(printf "%s" "${first_part}" | sed "s|^|${offset_tab}|")
+	if [ "${print_out}" == 1 ]; then
 		printf "${msg}\n"
 	fi
 	printf "${msg}\n" >> ${DEEPTHOUGHT_FILE}
 }
 
-function	echo_deep_new_line()
+function	echo_log_new_line()
 {
-	echo_deep 0 -1 "" 1
+	echo_log 0 -1 "" 1
 }
 
 function	reset_deepfile()
 {
 	[ -f ${DEEPTHOUGHT_FILE} ] && rm -f ${DEEPTHOUGHT_FILE}
-	echo_deep_section "MINISHELL tester (pix)." 1
+	echo_log_section "MINISHELL tester (${orange}pix${reset})." 1
 }
 
-function	echo_deep_part() {
+function	echo_log_part() {
 	local	part_str=${orange}${1}${reset}
 	local	part_name=${2}
 
 	DEEP_PART_NAME=${part_name}
-	echo_deep_new_line
-	echo_deep 0 3 "${blue}${part_name}${reset} ${part_str}" 1
+	echo_log_new_line
+	echo_log 0 3 "${blue}${part_name}${reset} ${part_str}" 1
 }
 
-function	echo_deep_sect()
+function	echo_log_sect()
 {
 	local	sect_name=${1}
 	local	part_name=${blue}${DEEP_PART_NAME}${reset}
 
-	echo_deep_new_line
-	echo_deep 1 2 "${part_name} ${sect_name}" 1
+	echo_log_new_line
+	echo_log 1 2 "${part_name} ${sect_name}" 1
 }
+
+function	echo_log_current_cmd()
+{
+	local	mode=${1}
+	local	curr_cmd=(${*})
+	local	to_print_cmd=()
+	local	to_print_str=""
+
+	for item in ${curr_cmd[*]:1}; do
+		if [ -f ${item} ] || [ -d ${item} ]; then
+			# printf "file : %s\n" "${item}"
+			if [ "${to_print_str}" == "" ]; then
+				to_print_str="${item/${DIR_BASE}/.}"
+			else
+				to_print_str="${to_print_str} ${item/${DIR_BASE}/.}"
+			fi
+		else
+			# printf "item : %s\n" "${item}"
+			if [ "${to_print_str}" == "" ]; then
+				to_print_str="${item}"
+			else
+				to_print_str="${to_print_str} ${item}"
+			fi
+		fi
+	done
+	echo_log 2 3 "\`${blue}${to_print_str}${reset}'" ${mode}
+}
+
 #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#==#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#

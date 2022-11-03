@@ -12,7 +12,7 @@ function	permission_exec_setup_create_file()
 
 function	pre_exec_perm()
 {
-	echo_deep_sect "permission"
+	echo_log_sect "permission"
 	# me: ---, groups: ---, others: --- (false)
 	permission_exec_setup_create_file 000 ./test/exec_00
 	# me: --x, groups: ---, others: --- (false)
@@ -29,7 +29,7 @@ function	pre_exec_perm()
 	permission_exec_setup_create_file 600 ./test/exec_06
 	# me: rwx, groups: ---, others: --- (true)
 	permission_exec_setup_create_file 700 ./test/exec_07
-	exec_mode=1
+	EXEC_MODE=1
 	return 0
 }
 
@@ -48,7 +48,7 @@ function	exec_perm()
 
 function post_exec_perm()
 {
-	exec_mode=0
+	EXEC_MODE=0
 	return 0
 }
 

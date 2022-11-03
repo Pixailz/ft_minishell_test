@@ -1,22 +1,41 @@
 #!/bin/bash
 
 : ' install_module MODULE
-install_file        install file to source
-install_func        entry func of module
-post_install_func   post install func of module
+DESC:                           Install module from file and source its function
+module                          module name
+
+install_file                    install file to source
+PREFIX_ENTRY_MODULE_INSTALL     take list of prefix to search for install
+                                function in module
 '
 function	install_module()
 {
-	local	install_file="${MODULE_DIR}/${1}/${MODULE_ENTRY_FILE}"
-	local	install_func="${PREFIX_INSTALL_MODULE}${1}"
-	local	post_install_func="${PREFIX_POST_INSTALL_MODULE}${1}"
+	local	module=${1}
+	local	install_file="${MODULE_DIR}/${module}/${MODULE_ENTRY_FILE}"
 
 	# source install file
 	if_file_exist_source ${install_file}
-	# do install
-	if_function_do ${install_func}
-	# do post install
-	if_function_do ${post_install_func}
+
+	for prefix in ${PREFIX_ENTRY_MODULE_INSTALL[*]}; do
+		if_function_do ${prefix}${module}
+	done
+}
+
+: ' install_modules
+DESC:                           Install all module from DO_PART[*], if
+                                DO_PART[*] is empty, set
+'
+function	install_modules()
+{
+	if [ ${HAVE_MODULE} == 1 ]; then
+		for module in ${DO_MODULE[*]}; do
+			install_module ${module}
+		done
+	else
+		for part in ${DO_PART[*]}; do
+			install_modules_${part}
+		done
+	fi
 }
 
 function	install_modules_basic()
@@ -31,22 +50,4 @@ function	install_modules_built()
 {
 	install_module "builtin_cd"
 	install_module "builtin_exit"
-}
-
-: ' install_modules
-DO_PART : specific array to do
-if len DO_PART == 0 do all
-'
-function	install_modules()
-{
-	if [ ${#DO_PART[*]} == 0 ]; then
-		for module in ${MODULES[*]}; do
-			install_module ${module}
-		done
-		DO_PART=${PARTS[*]}
-		return
-	fi
-	for part in ${DO_PART[*]}; do
-		install_modules_${part}
-	done
 }

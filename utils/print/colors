@@ -40,7 +40,7 @@ VE="\xe2\x95\x91"
 LL="\xe2\x95\x9a"
 LR="\xe2\x95\x9d"
 
-DEEP_SEC_COLOR=${green}
+DEEP_SEC_COLOR=${blue}
 
 function	p_remove_colors()
 {

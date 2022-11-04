@@ -3,7 +3,7 @@
 function	pre_exec_pipe()
 {
 	echo_log_sect "pipe"
-	TEST_FILE_PATH=${DIR_BASE}/test/file
+	TEST_FILE_PATH=${TEST_DIR}/file
 	echo "Seekers" > ${TEST_FILE_PATH}
 	return 0
 }
@@ -17,8 +17,8 @@ function	exec_pipe()
 	exec_command "echo pass1 | echo pass2"
 	exec_command "echoo pass | cat ${TEST_FILE_PATH}"
 	exec_command "echo pass | grep -o ass | cat -e"
-	exec_command "echo1 pass | echo pass | echo2 pass"
-	exec_command "echo1 pass | echo2 pass | echo pass"
+	exec_command "echo1 pass1 | echo pass2 | echo2 pass3"
+	exec_command "echo1 pass1 | echo2 pass2 | echo pass3"
 	exec_command "echo pass | cat -e | cat -e | cat -e | cat -e | cat -e | cat -e"
 	exec_command "ls -la ${HOME} | head -n 10"
 	exec_command "cat /etc/os-release | head -n 10"

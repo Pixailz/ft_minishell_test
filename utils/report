@@ -67,7 +67,7 @@ function	report_diff_dir()
 		if [ ${bash_have} == ${user_have} ]; then
 			bash_str=$(cat "${TMP_DIR_BASH}/${file}")
 			user_str=$(cat "${TMP_DIR_USER}/${file}")
-			if [ ${bash_str} == ${user_str} ]; then
+			if [ "${bash_str}" == "${user_str}" ]; then
 				echo_log 4 1 "${first_part} diff file ${green}ok${reset}"
 			else
 				echo_log 4 0 "${first_part} diff file ${red}not ok${reset}" 1
@@ -107,6 +107,14 @@ function	replace_tmp_file()
 	REPLACED=${str}
 }
 
+function	clean_test_dir()
+{
+	[ -d ${TMP_DIR_USER} ] || [ -f ${TMP_DIR_USER} ] && rm -rf ${TMP_DIR_USER}
+	mkdir -p ${TMP_DIR_USER}
+	[ -d ${TMP_DIR_BASH} ] || [ -f ${TMP_DIR_BASH} ] && rm -rf ${TMP_DIR_BASH}
+	mkdir -p ${TMP_DIR_BASH}
+}
+
 function	exec_command()
 {
 	local	out_expected
@@ -126,14 +134,15 @@ function	exec_command()
 		replace_tmp_file 0 "${cmd}"
 		cmd_user=${REPLACED}
 	fi
-	out_expected=$(bash -c "${cmd_bash}" 2>&1)
+
+	out_expected=$(echo -e "${cmd_bash}" | bash 2>&1)
 	# catch real bash return value
 	return_value_expected=${?}
 	# exec minishell
 	if [ ${EXEC_MODE} == 1 ]; then
 		exec_command="bash -c \"${cmd_user}\""
 	else
-		exec_command="${cmd_user}"
+		exec_command=${cmd_user}
 	fi
 	if [ ${EXEC_MODE} == 2 ]; then
 		out_user="$(echo -e "${exec_command}" | ${EXEC_PATH} 2>&1)"
@@ -183,6 +192,7 @@ function	exec_command()
 	### if EXEC_MODE set to 3 report diff dir
 	if [ ${EXEC_MODE} == 3 ]; then
 		report_diff_dir "${cmd_user}"
+		clean_test_dir
 	fi
 }
 

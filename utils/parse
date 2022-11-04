@@ -70,16 +70,24 @@ function	post_parsing()
 	else
 		DO_MODULE=${MODULES[*]}
 		DO_PART=${PARTS[*]}
-		return
 	fi
 	# check from input list ...
 	for to_str in ${to_check[*]}; do
+		# if to_str is equal to all
+		if [ ${HAVE_MODULE} == 1 ] && [ ${to_str} == "all" ]; then
+			if [ ${#DO_MODULE[@]} -gt 1 ]; then
+				p_error_parse "parameter all with option -m should be alone"
+			else
+				DO_MODULE=(${MODULES[*]})
+				break
+			fi
+		fi
 		# (set is_good variable to 0)
 		is_good=0
 		# ... to default list ...
 		for from_str in ${from_check[*]}; do
 			# ... if is equal to default.
-			if [ ${to_str} == ${from_str} ]; then
+			if [ "${to_str}" == "${from_str}" ]; then
 				# (set is_good variable to 1)
 				is_good=1
 				# break
@@ -102,14 +110,14 @@ function	post_parsing()
 		fi
 	done
 	: 'check if EXEC_PATH is supplied'
-	if [ ! -x ${EXEC_PATH} ]; then
+	if [ "${EXEC_PATH}" == "" ] || [ ! -x "${EXEC_PATH}" ]; then
 		p_error_parse "missing operand (${red}PATH${reset})"
 	fi
 }
 
 function	usage()
 {
-	printf "${SCRIPT_NAME} : ${SCRIPT_NAME} PATH [-n] [-p PART1... PARTN]\n"
+	printf "${SCRIPT_NAME} : ${SCRIPT_NAME} PATH [-n] [-p PART...| -m MODULE... ]\n"
 	printf "unit test for minishell project\n"
 	printf "\n"
 	printf "  -n, --no-color    to disable colors\n"

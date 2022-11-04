@@ -3,47 +3,40 @@
 function	pre_exec_redirection()
 {
 	echo_log_sect "redirection"
-	TMP_DIR_USER=${DIR_BASE}/test/expect_user
-	[ -d ${TMP_DIR_USER} ] || [ -f ${TMP_DIR_USER} ] && rm -rf ${TMP_DIR_USER}
-	mkdir -p ${TMP_DIR_USER}
-	TMP_DIR_BASH=${DIR_BASE}/test/expect_bash
-	[ -d ${TMP_DIR_BASH} ] || [ -f ${TMP_DIR_BASH} ] && rm -rf ${TMP_DIR_BASH}
-	mkdir -p ${TMP_DIR_BASH}
-	for n in {01..12}; do
+	TMP_FILE_IN=${TEST_DIR}/infile
+	echo "Seekers" > ${TMP_FILE_IN}
+	TMP_CHMOD_000=${TEST_DIR}/chmoded
+	echo "Seekers" > ${TMP_CHMOD_000}
+	chmod 000 ${TMP_CHMOD_000}
+	TMP_DIR_USER=${TEST_DIR}/expect_user
+	TMP_DIR_BASH=${TEST_DIR}/expect_bash
+	clean_test_dir
+	for n in {01..03}; do
 		TMP_FILE+=(file_${n})
 		TMP_FILE_USER+=(${TMP_DIR_USER/${DIR_BASE}\//}/${TMP_FILE[${#TMP_FILE[@]} - 1]})
 		TMP_FILE_BASH+=(${TMP_DIR_BASH/${DIR_BASE}\//}/${TMP_FILE[${#TMP_FILE[@]} - 1]})
 		TMP_FILE_REPL+=($(cat /dev/urandom | xxd -p -l 3 -g 8))
 	done
 	EXEC_MODE=3
-	EXEC_DISABLE_DIFF=1
+	# EXEC_DISABLE_DIFF=1
 	return 0
 }
 
 function	exec_redirection()
 {
 	exec_command "echo pass > ${TMP_FILE_REPL[0]}"
-# 	exec_command "\
-# echo pass1 > ${TMP_FILE_REPL[0]} | \
-# echo pass2 > ${TMP_FILE_REPL[1]} | \
-# echo pass3 > ${TMP_FILE_REPL[2]} | \
-# echo pass4 > ${TMP_FILE_REPL[3]}"
-# 	exec_command "\
-# ${TMP_FILE_REPL[0]} < echo pass1 > ${TMP_FILE_REPL[4]} | \
-# ${TMP_FILE_REPL[1]} < echo pass2 > ${TMP_FILE_REPL[5]} | \
-# ${TMP_FILE_REPL[2]} < echo pass3 > ${TMP_FILE_REPL[6]} | \
-# ${TMP_FILE_REPL[3]} < echo pass4 > ${TMP_FILE_REPL[7]}"
-# 	exec_command "\
-# ${TMP_FILE_REPL[0]} < echo pass1 > ${TMP_FILE_REPL[4]} >> ${TMP_FILE_REPL[8]} | \
-# ${TMP_FILE_REPL[1]} < echo pass2 > ${TMP_FILE_REPL[5]} >> ${TMP_FILE_REPL[9]} | \
-# ${TMP_FILE_REPL[2]} < echo pass3 > ${TMP_FILE_REPL[6]} >> ${TMP_FILE_REPL[10]} | \
-# ${TMP_FILE_REPL[3]} < echo pass4 > ${TMP_FILE_REPL[7]} >> ${TMP_FILE_REPL[11]}"
+	exec_command "< ${TMP_FILE_IN} cat | < ${TMP_FILE_IN} cat"
+	exec_command "< ${TMP_FILE_IN} cat > ${TMP_FILE_REPL[1]} | < ${TMP_FILE_IN} cat"
+	exec_command "< ${TMP_FILE_IN} cat > ${TMP_FILE_REPL[1]} | < ${TMP_FILE_IN} cat >> ${TMP_FILE_REPL[2]}"
+	exec_command "< ${TMP_FILE_IN} cat > ${TMP_FILE_REPL[1]} | < ${TMP_FILE_IN} cat >> ${TMP_FILE_REPL[2]}"
+	exec_command "< ${TMP_FILE_IN} cat -e > ${TMP_FILE_REPL[0]} | < file_not_found grep a1 > ${TMP_FILE_REPL[1]}"
+	exec_command "< ${TMP_FILE_IN} cat -e > ${TMP_FILE_REPL[0]} | < ${TMP_CHMOD_000} grep a1 > ${TMP_FILE_REPL[1]}"
 	return 0
 }
 
 function	post_exec_redirection()
 {
-	EXEC_DISABLE_DIFF=0
+	# EXEC_DISABLE_DIFF=0
 	EXEC_MODE=0
 	return 0
 }
@@ -59,4 +52,5 @@ if [ "${BASH_SOURCE[0]}" -ef "${0}" ]; then
 	fi
 	pre_exec_redirection
 	exec_redirection
+	post_exec_redirection
 fi

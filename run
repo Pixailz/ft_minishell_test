@@ -66,19 +66,20 @@ function	get_cwd()
 {
 	local	mode=${1}
 
-	if [ ${mode} == 1 ]; then
+	if [ "${mode}" == 1 ]; then
 		local	base=${0}
 	else
 		local	base=${BASH_SOURCE[0]}
 	fi
 
-	CURRENT_DIR=$(dirname ${base})
+	# CURRENT_DIR=$(dirname ${base})
+	CURRENT_DIR=$(realpath $(dirname ${base}))
 
 	[ "${DEBUG}" == 1 ] && printf "current_dir : [%s]\n" ${CURRENT_DIR}
 	[ "${DEBUG}" == 1 ] && printf "mode : [%s]\n" ${mode}
 }
 
-get_cwd 1
+get_cwd
 
 DIR_BASE=${CURRENT_DIR}
 PATH_CONFIG=${DIR_BASE}/.config

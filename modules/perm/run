@@ -13,36 +13,37 @@ function	permission_exec_setup_create_file()
 function	pre_exec_perm()
 {
 	echo_log_sect "permission"
+	mkdir ${TEST_DIR}/exec
 	# me: ---, groups: ---, others: --- (false)
-	permission_exec_setup_create_file 000 ./test/exec_00
+	permission_exec_setup_create_file 000 ${TEST_DIR}/exec/exec_00
 	# me: --x, groups: ---, others: --- (false)
-	permission_exec_setup_create_file 100 ./test/exec_01
+	permission_exec_setup_create_file 100 ${TEST_DIR}/exec/exec_01
 	# me: -w-, groups: ---, others: --- (false)
-	permission_exec_setup_create_file 200 ./test/exec_02
+	permission_exec_setup_create_file 200 ${TEST_DIR}/exec/exec_02
 	# me: -wx, groups: ---, others: --- (false)
-	permission_exec_setup_create_file 300 ./test/exec_03
+	permission_exec_setup_create_file 300 ${TEST_DIR}/exec/exec_03
 	# me: r--, groups: ---, others: --- (false)
-	permission_exec_setup_create_file 400 ./test/exec_04
+	permission_exec_setup_create_file 400 ${TEST_DIR}/exec/exec_04
 	# me: r-x, groups: ---, others: --- (true)
-	permission_exec_setup_create_file 500 ./test/exec_05
+	permission_exec_setup_create_file 500 ${TEST_DIR}/exec/exec_05
 	# me: rw-, groups: ---, others: --- (false)
-	permission_exec_setup_create_file 600 ./test/exec_06
+	permission_exec_setup_create_file 600 ${TEST_DIR}/exec/exec_06
 	# me: rwx, groups: ---, others: --- (true)
-	permission_exec_setup_create_file 700 ./test/exec_07
+	permission_exec_setup_create_file 700 ${TEST_DIR}/exec/exec_07
 	EXEC_MODE=1
 	return 0
 }
 
 function	exec_perm()
 {
-	exec_command "./test/exec_00" 3 3
-	exec_command "./test/exec_01" 3 3
-	exec_command "./test/exec_02" 3 3
-	exec_command "./test/exec_03" 3 3
-	exec_command "./test/exec_04" 3 3
-	exec_command "./test/exec_06" 3 3
-	exec_command "./test/exec_05"
-	exec_command "./test/exec_07"
+	exec_command "${TEST_DIR}/exec/exec_00" 3 3
+	exec_command "${TEST_DIR}/exec/exec_01" 3 3
+	exec_command "${TEST_DIR}/exec/exec_02" 3 3
+	exec_command "${TEST_DIR}/exec/exec_03" 3 3
+	exec_command "${TEST_DIR}/exec/exec_04" 3 3
+	exec_command "${TEST_DIR}/exec/exec_06" 3 3
+	exec_command "${TEST_DIR}/exec/exec_05"
+	exec_command "${TEST_DIR}/exec/exec_07"
 	return 0
 }
 

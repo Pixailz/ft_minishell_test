@@ -3,7 +3,7 @@
 function	pre_exec_parsing()
 {
 	echo_log_sect "parsing"
-	TMP_FILE=./${TEST_DIR}/file
+	TMP_FILE=${TEST_DIR}/file
 	echo Seekers > ${TMP_FILE}
 	return 0
 }

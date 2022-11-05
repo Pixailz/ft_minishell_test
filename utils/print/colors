@@ -76,38 +76,46 @@ function	p_remove_colors()
 ## print information
 function	p_info()
 {
-	printf "${P_INFO} $1${reset}\n"
+	printf "%b %b%b\n" "${P_INFO}" "${1}" "${reset}"
 }
 
 ## print warn
 function	p_warn()
 {
-	printf "${P_WARN} $1${reset}\n"
+	printf "%b %b%b\n" "${P_WARN}" "${1}" "${reset}"
 }
 
 ## print question
 function	p_ques()
 {
-	if [ "${2}" == '1' ]; then
-		printf "${P_QUES} $1${reset}\b"
+	if [ "${2}" == 1 ]; then
+		printf "%b %b%b\b" "${P_QUES}" "${1}" "${reset}"
 	else
-		printf "${P_QUES} $1${reset}\n"
+		printf "%b %b%b\n" "${P_QUES}" "${1}" "${reset}"
 	fi
 }
 
 ## print success or not
 function	p_pass() {
 	if [ -z ${2} ] || [ ${2} == 0 ]; then
-		printf "${P_PASS} $1${reset}\n"
+		printf "%b %b%b\n" "${P_PASS}" "${1}" "${reset}"
 	else
-		printf "${P_FAIL} $1${reset}\n"
+		printf "%b %b%b\n" "${P_PASS}" "${1}" "${reset}"
 	fi
 }
 
 ## print error and quit
 function	p_erro()
 {
-	printf "${P_ERRO} $1${reset}\n"
+	printf "%b %b%b\n" "${P_ERRO}" "${1}" "${reset}"
+	exit
+}
+
+## print parsing error and tips for calling help, then exit
+function	p_error_parse()
+{
+	printf "%s : %b\n" "${SCRIPT_NAME}" "${1}"
+	printf "Try '%s --help' for more information.\n" "${SCRIPT_NAME}"
 	exit
 }
 

@@ -3,6 +3,13 @@
 #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#==#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
 #> TEST
 
+: ' clean_out_user_cmd
+take ${out_user} and clean it for diff
+1. remove all escaped character, from 01 to 02
+2. remove prompt and all unecessary line from ${out_user}
+
+${out_user} is set from exec_command function
+'
 function	clean_out_user_cmd()
 {
 	# remove the ansi escaped character, should begin with \001 and finish with \002
@@ -11,22 +18,51 @@ function	clean_out_user_cmd()
 	out_user="$(echo "${out_user}" | tail -n +${tail_arg} | head -n -${head_arg} )"
 }
 
+: ' report_out
+1. compare ${out_expected} and ${out_user} and display like follow
+  1. if ${out_user} differ from ${out_expected}
+    - print error on deepfile and stdout
+    - show ${out_expected} and ${out_user}
+  2. else
+    - display pass on deepfile only
+    - display ${out_user} only
+
+${out_user} and ${out_expected} is set from exec_command function
+'
 function	report_out()
 {
+	# if str of expected equal str of out user, in exec_command
 	if [ "${out_expected}" == "${out_user}" ]; then
+		# display log: {offset: 3, mode: pass, msg: 'diff ok, print_out: false'}
 		echo_log 3 1 "diff ok"
 	else
+		# display log: {offset: 3, mode: failed, msg: 'diff ok, print_out:true'}
 		echo_log 3 0 "diff not ok" 1
 	fi
+	# display log: {offset: 4, mode: raw, msg: 'expected:'}
 	echo_log 4 -1 "${green}expected${reset}:"
+	# display log: {offset: 5, mode: raw, msg: '${out_expected}'}
 	echo_log 5 -1 "${out_expected}"
+	# display log: {offset: 4, mode: raw, msg: 'yours:'}
 	echo_log 4 -1 "${red}yours${reset}:"
+	# display log: {offset: 5, mode: raw, msg: '${out_user}'}
 	echo_log 5 -1 "${out_user}"
 }
 
+: ' report_return_value
+1. check
+  1. if ${same_return_value} equal to 1
+    - report return value are the same, on deepfile
+  2. else
+    - report return value are the same, on deepfile and stdout
+    - print ${return_value_expected} and ${return_value_user}
+
+${same_return_value}, ${return_value_expected} and ${return_value_user},
+is set from exec_command function
+'
 function	report_return_value()
 {
-	if [ "${same_return_value}" == "1" ]; then
+	if [ ${same_return_value} == 1 ]; then
 		echo_log 3 1 "return value are the same [${return_value_expected}]"
 	else
 		echo_log 3 0 "return value are not the same" 1

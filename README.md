@@ -14,4 +14,7 @@ test unitaire sur notre version de minishell
 should output
 `pass1 pass2`
 
-1. echo "ft*fd*.c"
+1. echo "ft\*fd\*.c"
+
+## TODO
+1. valgrind test :)

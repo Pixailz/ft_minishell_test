@@ -5,11 +5,10 @@
 
 function	echo_log_section()
 {
-	local	msg
-	msg="$(echo -e "${1}" | sed -E "s/\\e\\[.*m//")"
+	local	msg="${1}"
 
 	vertical_offset=$(printf "%0.s${HO}" $(seq 3 ${TITLE_LENGTH}))
-	center_off=$(( ${TITLE_LENGTH} - ${#msg}))
+	center_off=$((${TITLE_LENGTH} - ${#msg}))
 	center_splited=$(( (${center_off} - 2) / 2 ))
 	if [ $(( ${center_off} % 2)) == 0 ]; then
 		CL=$(printf "%0.s " $(seq 1 ${center_splited}))
@@ -54,9 +53,9 @@ function	echo_log()
 	fi
 	msg=$(printf "%s" "${first_part}" | sed "s|^|${offset_tab}|")
 	if [ "${print_out}" == 1 ]; then
-		printf "${msg}\n"
+		printf "%b\n" "${msg}"
 	fi
-	printf "${msg}\n" >> ${DEEPTHOUGHT_FILE}
+	printf "%b\n" "${msg}" >> ${DEEPTHOUGHT_FILE}
 }
 
 function	echo_log_new_line()
@@ -97,14 +96,14 @@ function	echo_log_current_cmd()
 
 	for item in ${curr_cmd[*]:1}; do
 		if [ -f ${item} ] || [ -d ${item} ]; then
-			# printf "file : %s\n" "${item}"
+			[ ${DEBUG} ] && printf "file : %s\n" "${item}"
 			if [ "${to_print_str}" == "" ]; then
 				to_print_str="${item/${DIR_BASE}/.}"
 			else
 				to_print_str="${to_print_str} ${item/${DIR_BASE}/.}"
 			fi
 		else
-			# printf "item : %s\n" "${item}"
+			[ ${DEBUG} ] && printf "item : %s\n" "${item}"
 			if [ "${to_print_str}" == "" ]; then
 				to_print_str="${item}"
 			else

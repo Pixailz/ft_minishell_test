@@ -75,15 +75,15 @@ function	get_cwd()
 	# CURRENT_DIR=$(dirname ${base})
 	CURRENT_DIR=$(realpath $(dirname ${base}))
 
-	[ "${DEBUG}" == 1 ] && printf "current_dir : [%s]\n" ${CURRENT_DIR}
-	[ "${DEBUG}" == 1 ] && printf "mode : [%s]\n" ${mode}
+	[ "${DEBUG}" == 1 ] && printf "current_dir : [%s]\n" "${CURRENT_DIR}"
+	[ "${DEBUG}" == 1 ] && printf "mode : [%s]\n" "${mode}"
 }
 
 get_cwd
 
 DIR_BASE=${CURRENT_DIR}
 PATH_CONFIG=${DIR_BASE}/.config
-[ "${DEBUG}" == 1 ] && printf "path_config [%s]\n" ${PATH_CONFIG}
+[ "${DEBUG}" == 1 ] && printf "path_config [%s]\n" "${PATH_CONFIG}"
 source ${PATH_CONFIG}
 
 parse_arg ${@}

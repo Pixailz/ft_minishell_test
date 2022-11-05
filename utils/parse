@@ -25,13 +25,6 @@ function	is_in_list()
 
 }
 
-function	p_error_parse()
-{
-	printf "${SCRIPT_NAME}: ${1}\n"
-	printf "Try '${SCRIPT_NAME} --help' for more information.\n"
-	exit
-}
-
 function	debug_print_parse_arg()
 {
 	debug_print_array 'DO_PART' ${DO_PART[*]}
@@ -117,7 +110,7 @@ function	post_parsing()
 
 function	usage()
 {
-	printf "${SCRIPT_NAME} : ${SCRIPT_NAME} PATH [-n] [-p PART...| -m MODULE... ]\n"
+	printf "%s : %s PATH [-n] [-p PART...| -m MODULE... ]\n" "${SCRIPT_NAME}" "${SCRIPT_NAME}"
 	printf "unit test for minishell project\n"
 	printf "\n"
 	printf "  -n, --no-color    to disable colors\n"
@@ -125,13 +118,13 @@ function	usage()
 	printf "\n"
 	printf "  -p, --part        install part, available part:\n"
 	for part in ${PARTS[*]}; do
-	printf "                        - ${part}\n"
+	printf "                        - %s\n" "${part}"
 	done
 	printf "\n"
 	printf "  -m, --module      install modules, available module:\n"
 	printf "                        - all\n"
 	for module in ${MODULES[*]}; do
-	printf "                        - ${module}\n"
+	printf "                        - %s\n" "${module}"
 	done
 	exit
 }
@@ -144,7 +137,8 @@ if -p, --part				set DO_PART=part1 ... partn
 if -m, --module				set DO_MODULE=module1 ... modulen
 
 -p && -m						false
--f|-n && -p | --part | -all		true'
+-f|-n && -p | --part | -all		true
+'
 function	parse_arg()
 {
 	# set default value
@@ -182,5 +176,5 @@ function	parse_arg()
 		shift
 	done
 	post_parsing
-	# debug_print_parse_arg
+	[ ${DEBUG} ] && debug_print_parse_arg
 }

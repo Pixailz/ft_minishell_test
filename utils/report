@@ -18,6 +18,14 @@ function	clean_out_user_cmd()
 	out_user="$(echo "${out_user}" | tail -n +${tail_arg} | head -n -${head_arg} )"
 }
 
+function	clean_out_bash_cmd()
+{
+	# remove the ansi escaped character, should begin with \001 and finish with \002
+	out_expected="$(echo "${out_expected}" | sed "s/\o001.*\o002//g")"
+	# remove line with the command and the three last command
+	out_expected="$(echo "${out_expected}" | tail -n +2 | head -n -1 )"
+}
+
 : ' report_out
 1. compare ${out_expected} and ${out_user} and display like follow
   1. if ${out_user} differ from ${out_expected}
@@ -171,9 +179,10 @@ function	exec_command()
 		cmd_user=${REPLACED}
 	fi
 
-	out_expected=$(echo -e "${cmd_bash}" | bash 2>&1)
+	out_expected=$(echo -e "${cmd_bash}" | bash -i 2>&1)
 	# catch real bash return value
 	return_value_expected=${?}
+
 	# exec minishell
 	if [ ${EXEC_MODE} == 1 ]; then
 		exec_command="bash -c \"${cmd_user}\""
@@ -196,6 +205,9 @@ function	exec_command()
 
 	# clean prompt output
 	clean_out_user_cmd "${EXEC_MODE}"
+	# clean prompt output
+	clean_out_bash_cmd "${EXEC_MODE}"
+
 	# check if return value match
 	same_return_value=0
 	if [ "${return_value_expected}" == "${return_value_user}" ]; then

@@ -5,6 +5,7 @@ function	pre_exec_parsing()
 	echo_log_sect "parsing"
 	TMP_FILE=${TEST_DIR}/file
 	echo Seekers > ${TMP_FILE}
+	EXEC_MODE=0
 	return 0
 }
 

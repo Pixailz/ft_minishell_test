@@ -30,18 +30,19 @@ function	pre_exec_perm()
 	permission_exec_setup_create_file 600 ${TEST_DIR}/exec/exec_06
 	# me: rwx, groups: ---, others: --- (true)
 	permission_exec_setup_create_file 700 ${TEST_DIR}/exec/exec_07
-	EXEC_MODE=1
+	EXEC_MODE=0
 	return 0
 }
 
 function	exec_perm()
 {
-	exec_command "${TEST_DIR}/exec/exec_00" 3 3
-	exec_command "${TEST_DIR}/exec/exec_01" 3 3
-	exec_command "${TEST_DIR}/exec/exec_02" 3 3
-	exec_command "${TEST_DIR}/exec/exec_03" 3 3
-	exec_command "${TEST_DIR}/exec/exec_04" 3 3
-	exec_command "${TEST_DIR}/exec/exec_06" 3 3
+	exec_command "${TEST_DIR}/exec/exec_00" 2 3
+	exec_command "${TEST_DIR}/exec/exec_01" 2 3
+	exec_command "${TEST_DIR}/exec/exec_02" 2 3
+	exec_command "${TEST_DIR}/exec/exec_03" 2 3
+	exec_command "${TEST_DIR}/exec/exec_04" 2 3
+	exec_command "${TEST_DIR}/exec/exec_06" 2 3
+	EXEC_MODE=1
 	exec_command "${TEST_DIR}/exec/exec_05"
 	exec_command "${TEST_DIR}/exec/exec_07"
 	return 0

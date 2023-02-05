@@ -1,20 +1,15 @@
 # minishell_unit_test
-test unitaire sur notre version de minishell
 
-## TO TEST
-- `echo "test > test"`
-- `ech$O test`
-- `echo pass1 > file pass2`
-- `echo pass >>file1 | echo pass >> file2`
+lil test for minishell project.
 
-### wildcard
-1. `touch cat; echo pass1 > echo; echo pass2 > pass`
-2. `*`
+i will not update this thing as the more i improved it, the more i realized that my minishell was
+a shit :)
 
-should output
-`pass1 pass2`
+So no update, those test are a great basic of what you have to do with minishell
+(issue open)
 
-1. echo "ft\*fd\*.c"
+DO NOT USE THIS TEST on evalutations. this is too powerfull :'(
 
 ## TODO
-1. valgrind test :)
+
+nothing more, is up to you to get in your way.

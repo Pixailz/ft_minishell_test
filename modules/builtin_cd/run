@@ -3,6 +3,7 @@
 function	pre_exec_builtin_cd()
 {
 	echo_log_sect "cd"
+	EXEC_MODE=0
 	return 0
 }
 

@@ -167,7 +167,7 @@ function	parse_arg()
 				p_remove_colors
 				;;
 			*)
-				[[ "${1}" =~ --?.* ]] && p_error_parse "invalid options -- '${1}'"
+				[[ "${1}" =~ ^--?.* ]] && p_error_parse "invalid options -- '${1}'"
 				TMP_PATH=$(realpath ${1})
 				[ ! -f "${TMP_PATH}" ] && p_error_parse "${1}: no such file"
 				EXEC_PATH=${TMP_PATH}

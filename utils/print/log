@@ -8,7 +8,7 @@ function	echo_log_section()
 	local	msg="${1}"
 
 	vertical_offset=$(printf "%0.s${HO}" $(seq 3 ${TITLE_LENGTH}))
-	center_off=$((${TITLE_LENGTH} - ${#msg}))
+	center_off=$((${TITLE_LENGTH} - ${#msg} + 17))
 	center_splited=$(( (${center_off} - 2) / 2 ))
 	if [ $(( ${center_off} % 2)) == 0 ]; then
 		CL=$(printf "%0.s " $(seq 1 ${center_splited}))

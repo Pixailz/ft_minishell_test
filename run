@@ -89,6 +89,8 @@ function	get_cwd()
 	[ "${DEBUG}" == 1 ] && printf "mode : [%s]\n" "${mode}"
 }
 
+trap "clean_test; exit" SIGINT exit
+
 get_cwd
 
 DIR_BASE=${CURRENT_DIR}

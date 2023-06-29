@@ -144,6 +144,7 @@ function	parse_arg()
 	# set default value
 	HAVE_MODULE=0
 	HAVE_PART=0
+	NO_ANSI=0
 	EXEC_PATH=""
 
 	while [ "${1}" != "" ]; do
@@ -164,6 +165,7 @@ function	parse_arg()
 				HAVE_MODULE=1
 				;;
 			-n|--no-color)
+				NO_ANSI=1
 				p_remove_colors
 				;;
 			*)

@@ -10,7 +10,6 @@ function	pre_exec_builtin_exit()
 	return 0
 }
 
-
 function	exec_builtin_exit()
 {
 	exec_command "exit 123"
@@ -30,7 +29,7 @@ function	exec_builtin_exit()
 	exec_command "exit 92233720368547758080"	# 2
 	exec_command "exit -92233720368547758090"	# 2
 	exec_command "exit -9223372036854775809"	# 2
-	# exec_command "exit -9223372036854775808"	# 0
+	exec_command "exit -9223372036854775808"	# 0
 	return 0
 }
 

@@ -2,13 +2,36 @@
 
 lil test for minishell project.
 
-i will not update this thing as the more i improved it, the more i realized that my minishell was
-a shit :)
+for a comparison, here is my [minishell](https://github.com/Pixailz/ft_minishell) i don't pass all the test but my grade was 101, so this is a good exemple of not being too **strict** for this project
 
-So no update, those test are a good base of what is expected from you
-(issue open)
+DO NOT USE THIS TEST in evalutations. this is only to prepare the evalutation
 
-DO NOT USE THIS TEST on evalutations. this is too `strict` :'(
+## HOWTO
+
+running this scripts will output only the test that failed, additionnaly it will
+create a [deepthought](./deepthought) file with details and all the test that's been done
+
+> here's the help from `./run --help`
+```usage
+run : run PATH [-n] [-p PART...| -m MODULE... ]
+unit test for minishell project
+
+  -n, --no-color    to disable colors
+  -h, --help        show this help
+
+  -p, --part        install part, available part:
+                        - basic
+                        - built
+
+  -m, --module      install modules, available module:
+                        - all
+                        - builtin_exit
+                        - builtin_cd
+                        - parsing
+                        - perm
+                        - pipe
+                        - redirection
+```
 
 ## TODO
 

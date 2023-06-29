@@ -3,36 +3,6 @@
 #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#==#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
 #> BASH COLOR
 
-# BEG_ESC='\001'
-# END_ESC='\002'
-
-green="${BEG_ESC}\e[38;5;82m${END_ESC}"
-red="${BEG_ESC}\e[38;5;196m${END_ESC}"
-yellow="${BEG_ESC}\e[33m${END_ESC}"
-blue="${BEG_ESC}\e[38;5;75m${END_ESC}"
-orange="${BEG_ESC}\e[38;5;214m${END_ESC}"
-lgreen="${BEG_ESC}\e[92m${END_ESC}"
-lyellow="${BEG_ESC}\e[93m${END_ESC}"
-lblue="${BEG_ESC}\e[94m${END_ESC}"
-lmagenta="${BEG_ESC}\e[95m${END_ESC}"
-lcyan="${BEG_ESC}\e[96m${END_ESC}"
-
-blink="${BEG_ESC}\e[05m${END_ESC}"
-blink_red="${BEG_ESC}${blink}${red}${END_ESC}"
-restore="${BEG_ESC}\033[0m${END_ESC}"
-reset="${BEG_ESC}\e[0m${END_ESC}"
-
-P_INFO="${lcyan}[INFO]${reset}"
-P_WARN="${orange}[WARN]${reset}"
-P_QUES="${blue}[QUE?]${reset}"
-P_PASS="${green}[PASS]${reset}"
-P_FAIL="${red}[FAIL]${reset}"
-P_ERRO="${red}[ERRO]${reset}"
-SUCCESS="[${green}+${reset}] "
-FAILED="[${red}-${reset}] "
-INFO="[${blue}*${reset}] "
-WARN="[${orange}*${reset}] "
-
 UL="\xe2\x95\x94"
 HO="\xe2\x95\x90"
 UR="\xe2\x95\x97"
@@ -40,7 +10,48 @@ VE="\xe2\x95\x91"
 LL="\xe2\x95\x9a"
 LR="\xe2\x95\x9d"
 
-DEEP_SEC_COLOR=${blue}
+function	p_toggle_color()
+{
+	local	surrounding_mode="${1:-1}"
+	local	end_esc=""
+
+	if [ "${surrounding_mode}" == "1" ]; then
+		BEG_ESC='\001'
+		END_ESC='\002'
+	else
+		BEG_ESC=''
+		END_ESC=''
+	fi
+
+	green="${BEG_ESC}\e[38;5;82m${END_ESC}"
+	red="${BEG_ESC}\e[38;5;196m${END_ESC}"
+	yellow="${BEG_ESC}\e[33m${END_ESC}"
+	blue="${BEG_ESC}\e[38;5;75m${END_ESC}"
+	orange="${BEG_ESC}\e[38;5;214m${END_ESC}"
+	lgreen="${BEG_ESC}\e[92m${END_ESC}"
+	lyellow="${BEG_ESC}\e[93m${END_ESC}"
+	lblue="${BEG_ESC}\e[94m${END_ESC}"
+	lmagenta="${BEG_ESC}\e[95m${END_ESC}"
+	lcyan="${BEG_ESC}\e[96m${END_ESC}"
+
+	blink="${BEG_ESC}\e[05m${END_ESC}"
+	blink_red="${BEG_ESC}${blink}${red}${END_ESC}"
+	restore="${BEG_ESC}\033[0m${END_ESC}"
+	reset="${BEG_ESC}\e[0m${END_ESC}"
+
+	P_INFO="${lcyan}[INFO]${reset}"
+	P_WARN="${orange}[WARN]${reset}"
+	P_QUES="${blue}[QUE?]${reset}"
+	P_PASS="${green}[PASS]${reset}"
+	P_FAIL="${red}[FAIL]${reset}"
+	P_ERRO="${red}[ERRO]${reset}"
+	SUCCESS="[${green}+${reset}] "
+	FAILED="[${red}-${reset}] "
+	INFO="[${blue}*${reset}] "
+	WARN="[${orange}*${reset}] "
+
+	DEEP_SEC_COLOR="${!LOG_TITLE_DEFAULT_COLOR}"
+}
 
 function	p_remove_colors()
 {

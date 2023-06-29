@@ -4,9 +4,11 @@ function	permission_exec_setup_create_file()
 {
 	local	permissions=${1}
 	local	file_path=${2}
+	local	binary=$(type -P ls)
 
 	[ -f ${file_path} ] || [ -d ${file_path} ] && rm -rf ${file_path}
-	echo "echo pass" > ${file_path}
+
+	cp ${binary} ${file_path}
 	chmod ${permissions} ${file_path}
 }
 
